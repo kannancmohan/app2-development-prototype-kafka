@@ -1,0 +1,28 @@
+#!/bin/sh
+
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+info_message() {
+    echo "${BLUE}Info: ${1}${NC}"
+}
+
+# Check if there are staged changes
+if git diff --cached --quiet; then
+    info_message "No staged changes to commit"
+    exit 0
+fi
+
+# Run style check
+./mvnw spotless:check
+
+# Capture the result of the style check
+RESULT=$?
+
+# If style check failed, do not commit
+if [ $RESULT -ne 0 ]; then
+    echo "Checkstyle failed. Please fix the issues before committing."
+    exit 1
+fi
+
+# Allow the commit if style check passed
+exit 0

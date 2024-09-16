@@ -1,11 +1,15 @@
 package com.kcm.msp.dev.app2.development.prototype.kafka.consumer.config;
 
+import static org.apache.kafka.clients.consumer.ConsumerConfig.*;
+import static org.springframework.kafka.support.serializer.JsonDeserializer.TRUSTED_PACKAGES;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import com.kcm.msp.dev.app2.development.prototype.kafka.consumer.models.Message;
 import com.kcm.msp.dev.app2.development.prototype.kafka.consumer.properties.KafkaProperty;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,8 +17,12 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.ContainerProperties.AckMode;
+import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.springframework.util.backoff.FixedBackOff;
 
+@Slf4j
 @EnableKafka
 @Configuration
 @RequiredArgsConstructor
@@ -33,26 +41,45 @@ public class KafkaConsumerConfig {
   @Bean // for consuming Message object
   public ConcurrentKafkaListenerContainerFactory<String, Message>
       messageKafkaListenerContainerFactory() {
-    ConcurrentKafkaListenerContainerFactory<String, Message> factory =
+    final ConcurrentKafkaListenerContainerFactory<String, Message> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(messageConsumerFactory());
     return factory;
   }
 
-  @Bean // for consuming Message object
-  public ConcurrentKafkaListenerContainerFactory<String, Object>
+  @Bean // for consuming json object
+  public ConcurrentKafkaListenerContainerFactory<String, JsonNode>
       jsonObjectKafkaListenerContainerFactory() {
-    ConcurrentKafkaListenerContainerFactory<String, Object> factory =
+    final var errorHandler =
+        new DefaultErrorHandler(
+            (consumerRecord, exception) -> {
+              // add logic to execute retry attempts are exhausted. eg send to a dead-letter topic
+              log.error(
+                  "Message from topic {} could not be processed after multiple retries: {}",
+                  consumerRecord.topic(),
+                  consumerRecord.value(),
+                  exception);
+            },
+            new FixedBackOff(0L, 2L));
+
+    final ConcurrentKafkaListenerContainerFactory<String, JsonNode> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(jsonObjectConsumerFactory());
+    factory
+        .getContainerProperties()
+        .setAckMode(
+            AckMode.RECORD); // If precise error handling and resilience are critical for your
+    // application, it's recommended to explicitly set the acknowledgment mode
+    // to AckMode.RECORD
+    factory.setCommonErrorHandler(errorHandler);
     return factory;
   }
 
   private ConsumerFactory<String, String> consumerFactory() {
     final Map<String, Object> props = new HashMap<>();
-    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperty.getBootstrapServers());
-    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaProperty.getBootstrapServers());
+    props.put(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
     // props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
     // props.put(ConsumerConfig.MAX_PARTITION_FETCH_BYTES_CONFIG, "20971520");
     // props.put(ConsumerConfig.FETCH_MAX_BYTES_CONFIG, "20971520");
@@ -61,26 +88,25 @@ public class KafkaConsumerConfig {
 
   private ConsumerFactory<String, Message> messageConsumerFactory() {
     Map<String, Object> props = new HashMap<>();
-    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperty.getBootstrapServers());
-    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+    props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaProperty.getBootstrapServers());
+    props.put(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
     props.put(
-        JsonDeserializer.TRUSTED_PACKAGES,
-        "*"); // whitelist of package names that the deserializer is allowed to deserialize objects
-    // from
+        TRUSTED_PACKAGES,
+        "*"); // whitelist of package names that deserializer is allowed to deserialize
     props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, Message.class);
     return new DefaultKafkaConsumerFactory<>(props);
   }
 
-  private ConsumerFactory<String, Object> jsonObjectConsumerFactory() {
+  private ConsumerFactory<String, JsonNode> jsonObjectConsumerFactory() {
     Map<String, Object> props = new HashMap<>();
-    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperty.getBootstrapServers());
-    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+    props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaProperty.getBootstrapServers());
+    props.put(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
     props.put(
-        JsonDeserializer.TRUSTED_PACKAGES,
-        "*"); // whitelist of package names that the deserializer is allowed to deserialize objects
-    // from
+        TRUSTED_PACKAGES,
+        "*"); // whitelist of package names that deserializer is allowed to deserialize
+    props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, JsonNode.class);
     return new DefaultKafkaConsumerFactory<>(props);
   }
 }

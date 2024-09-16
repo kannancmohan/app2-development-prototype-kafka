@@ -9,4 +9,11 @@
   <artifactId>app2-development-prototype-kafka-consumer</artifactId>
   <name>app2-development-prototype-kafka-consumer</name>
   <description>Kafka consumer prototype</description>
+  <dependencies>
+    <!-- added for deserializing custom kafa message-->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+  </dependencies>
 </project>

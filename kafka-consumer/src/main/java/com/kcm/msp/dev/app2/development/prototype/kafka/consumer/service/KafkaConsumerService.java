@@ -2,6 +2,7 @@ package com.kcm.msp.dev.app2.development.prototype.kafka.consumer.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.kcm.msp.dev.app2.development.prototype.kafka.consumer.models.Message;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -18,6 +19,16 @@ public class KafkaConsumerService {
       groupId = "test_string-group1")
   public void consumeString(@Payload final String message) {
     log.info("String message: {}", message);
+  }
+
+  @KafkaListener(
+      topics = {"test_string-topic"},
+      groupId = "test_batch_string-group1",
+      containerFactory = "batchKafkaListenerContainerFactory")
+  public void consumeBatchString(@Payload final List<String> messages) {
+    for (final String message : messages) {
+      log.info("[Batch]String message: {}", message);
+    }
   }
 
   @KafkaListener(

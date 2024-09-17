@@ -50,6 +50,7 @@ public class KafkaConsumerConfig {
   @Bean // for consuming json object
   public ConcurrentKafkaListenerContainerFactory<String, JsonNode>
       jsonObjectKafkaListenerContainerFactory() {
+    // remove if custom errorHandler is not required
     final var errorHandler =
         new DefaultErrorHandler(
             (consumerRecord, exception) -> {
@@ -60,7 +61,7 @@ public class KafkaConsumerConfig {
                   consumerRecord.value(),
                   exception);
             },
-            new FixedBackOff(0L, 2L));
+            new FixedBackOff(1000L, 2L)); // Retry twice with 1 second delay
 
     final ConcurrentKafkaListenerContainerFactory<String, JsonNode> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
@@ -72,6 +73,17 @@ public class KafkaConsumerConfig {
     // application, it's recommended to explicitly set the acknowledgment mode
     // to AckMode.RECORD
     factory.setCommonErrorHandler(errorHandler);
+    return factory;
+  }
+
+  @Bean // for batch consuming string messages
+  public ConcurrentKafkaListenerContainerFactory<String, String>
+      batchKafkaListenerContainerFactory() {
+    final ConcurrentKafkaListenerContainerFactory<String, String> factory =
+        new ConcurrentKafkaListenerContainerFactory<>();
+    factory.setConsumerFactory(batchConsumerFactory());
+    factory.setBatchListener(true); // Enable batch mode
+    factory.setConcurrency(3); // Optional: sets the number of concurrent threads
     return factory;
   }
 
@@ -107,6 +119,18 @@ public class KafkaConsumerConfig {
         TRUSTED_PACKAGES,
         "*"); // whitelist of package names that deserializer is allowed to deserialize
     props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, JsonNode.class);
+    return new DefaultKafkaConsumerFactory<>(props);
+  }
+
+  private ConsumerFactory<String, String> batchConsumerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaProperty.getBootstrapServers());
+    props.put(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(ENABLE_AUTO_COMMIT_CONFIG, false); // Disable auto-commit for better control
+    props.put(MAX_POLL_RECORDS_CONFIG, 100); // Max number of records per batch
+    props.put(FETCH_MIN_BYTES_CONFIG, 1024); // Minimum data to fetch in bytes
+    props.put(FETCH_MAX_WAIT_MS_CONFIG, 5000); // Max wait time if data is less than FETCH_MIN_BYTES
     return new DefaultKafkaConsumerFactory<>(props);
   }
 }

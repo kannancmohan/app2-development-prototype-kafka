@@ -19,6 +19,8 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.CommonDelegatingErrorHandler;
+import org.springframework.kafka.listener.CommonErrorHandler;
 import org.springframework.kafka.listener.ConsumerRecordRecoverer;
 import org.springframework.kafka.listener.ContainerProperties.AckMode;
 import org.springframework.kafka.listener.DefaultErrorHandler;
@@ -48,7 +50,7 @@ public class KafkaConsumerConfig {
     final ConcurrentKafkaListenerContainerFactory<String, Message> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(messageConsumerFactory());
-    factory.setCommonErrorHandler(errorHandler(2L, 1000L));
+    factory.setCommonErrorHandler(commonErrorHandler());
     return factory;
   }
 
@@ -102,6 +104,7 @@ public class KafkaConsumerConfig {
     // props.put(ConsumerConfig.FETCH_MAX_BYTES_CONFIG, "20971520");
     return new DefaultKafkaConsumerFactory<>(props);
   }
+
   private ConsumerFactory<String, Message> messageConsumerFactory() {
     final Map<String, Object> props = new HashMap<>();
     props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaProperty.getBootstrapServers());
@@ -151,7 +154,15 @@ public class KafkaConsumerConfig {
     return new DefaultKafkaConsumerFactory<>(props);
   }
 
-  private DefaultErrorHandler errorHandler(long retryAttempts, long delayBtwnRetries) {
+  // An error handler that delegates to different error handlers, depending on the exception type
+  private CommonErrorHandler commonErrorHandler() {
+    final var defaultHandler = defaultErrorHandler(1000L, 2L);
+    final var handler = new CommonDelegatingErrorHandler(defaultHandler);
+    // add additional custom error handlers based on exception type
+    return handler;
+  }
+
+  private DefaultErrorHandler defaultErrorHandler(long delayBtwnRetries, long retryAttempts) {
     // Retry 2 times with a 1 second delay in between retries
     final var fixedBackOff = new FixedBackOff(delayBtwnRetries, retryAttempts);
     // custom logic to execute after retries are exhausted

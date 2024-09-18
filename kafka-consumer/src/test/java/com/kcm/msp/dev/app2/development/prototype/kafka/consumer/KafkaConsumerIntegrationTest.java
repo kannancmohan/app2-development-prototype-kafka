@@ -1,10 +1,15 @@
 package com.kcm.msp.dev.app2.development.prototype.kafka.consumer;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kcm.msp.dev.app2.development.prototype.kafka.consumer.models.Message;
 import java.time.Duration;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
@@ -28,7 +33,6 @@ import org.springframework.test.context.junit.jupiter.DisabledIf;
 
 @Tag("IntegrationTest")
 @DisabledIf(expression = "#{environment['skip.integration.test'] == 'true'}")
-// @EnableConfigurationProperties(KafkaProperty.class)
 @SpringBootTest(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @EmbeddedKafka(
     partitions = 2,
@@ -46,26 +50,35 @@ public class KafkaConsumerIntegrationTest {
   private ConcurrentKafkaListenerContainerFactory<String, String>
       batchKafkaListenerContainerFactory;
 
+  @Autowired
+  private ConcurrentKafkaListenerContainerFactory<String, Message>
+      messageKafkaListenerContainerFactory;
+
+  @Autowired
+  private ConcurrentKafkaListenerContainerFactory<String, JsonNode>
+      jsonObjectKafkaListenerContainerFactory;
+
   @Nested
   @TestInstance(PER_CLASS)
   class TestStingPayload {
-    private Producer<String, String> stringProducer;
+
+    private Producer<String, String> producer;
 
     @BeforeAll
     void beforeAll() {
       final var producerProperties = kafkaProperties.buildProducerProperties(null);
       // final var producerProperties = KafkaTestUtils.producerProps(broker);
-      stringProducer = new KafkaProducer<>(producerProperties);
+      producer = new KafkaProducer<>(producerProperties);
     }
 
     @Test
     void stringMessageShouldInvokeKafkaConsumer() {
       final var topic = "int_test_string-topic";
       final var group = "test_string-group1";
-      final var payloadKey = "test-key";
+      final var payloadKey = "test_string-key";
       final var payload = "Sending with our own simple KafkaProducer";
-      stringProducer.send(new ProducerRecord<>(topic, payloadKey, payload));
-      final var consumer = getConsumer(topic, group);
+      producer.send(new ProducerRecord<>(topic, payloadKey, payload));
+      final var consumer = getConsumer(kafkaListenerContainerFactory, topic, group);
       final var records = KafkaTestUtils.getRecords(consumer, Duration.ofSeconds(30));
       assertAll(
           () -> assertNotNull(records),
@@ -84,8 +97,8 @@ public class KafkaConsumerIntegrationTest {
       int noOfRecords = 5;
       IntStream.range(0, noOfRecords)
           .mapToObj(id -> new ProducerRecord<>(topic, "test-key_" + id, "payload_" + id))
-          .forEach(r -> stringProducer.send(r));
-      final var consumer = getBatchConsumer(topic, group);
+          .forEach(r -> producer.send(r));
+      final var consumer = getConsumer(batchKafkaListenerContainerFactory, topic, group);
       final var records = KafkaTestUtils.getRecords(consumer, Duration.ofSeconds(60));
       assertAll(
           () -> assertNotNull(batchKafkaListenerContainerFactory),
@@ -94,23 +107,69 @@ public class KafkaConsumerIntegrationTest {
           () -> assertTrue(records.count() >= noOfRecords));
       consumer.close();
     }
+  }
 
-    @SuppressWarnings("unchecked")
-    private Consumer<String, String> getConsumer(final String topicId, final String groupId) {
-      final var consumer =
-          kafkaListenerContainerFactory.getConsumerFactory().createConsumer(groupId, "clientId");
-      broker.consumeFromAnEmbeddedTopic(consumer, topicId);
-      return (Consumer<String, String>) consumer;
+  @Nested
+  @TestInstance(PER_CLASS)
+  class TestCustomPayload {
+    private Producer<String, String> producer;
+
+    @BeforeAll
+    void beforeAll() {
+      final var producerProperties = kafkaProperties.buildProducerProperties(null);
+      // final var producerProperties = KafkaTestUtils.producerProps(broker);
+      producer = new KafkaProducer<>(producerProperties);
     }
 
-    @SuppressWarnings("unchecked")
-    private Consumer<String, String> getBatchConsumer(final String topicId, final String groupId) {
-      final var consumer =
-          batchKafkaListenerContainerFactory
-              .getConsumerFactory()
-              .createConsumer(groupId, "clientId");
-      broker.consumeFromAnEmbeddedTopic(consumer, topicId);
-      return (Consumer<String, String>) consumer;
+    @Test
+    void customObjectMessageShouldInvokeKafkaConsumer() throws JsonProcessingException {
+      final var topic = "int_test_message_obj-topic";
+      final var group = "test_message-group1";
+      final var payloadKey = "test_message-key";
+      final var payload =
+          new ObjectMapper()
+              .writeValueAsString(Message.builder().messageId("msgid").message("msg").build());
+      producer.send(new ProducerRecord<>(topic, payloadKey, payload));
+      final var consumer = getConsumer(messageKafkaListenerContainerFactory, topic, group);
+      final var record = KafkaTestUtils.getSingleRecord(consumer, topic, Duration.ofSeconds(30));
+      assertAll(() -> assertNotNull(record), () -> assertEquals(payloadKey, record.key()));
+      consumer.close();
     }
+  }
+
+  @Nested
+  @TestInstance(PER_CLASS)
+  class TestJsonPayload {
+    private Producer<String, String> producer;
+
+    @BeforeAll
+    void beforeAll() {
+      final var producerProperties = kafkaProperties.buildProducerProperties(null);
+      // final var producerProperties = KafkaTestUtils.producerProps(broker);
+      producer = new KafkaProducer<>(producerProperties);
+    }
+
+    @Test
+    void jsonMessageShouldInvokeKafkaConsumer() {
+      final var topic = "int_test_json_obj-topic";
+      final var group = "test_message-group1";
+      final var payloadKey = "test_message-key";
+      final var payload = "{\"id\": 1, \"name\": \"test\"}";
+      producer.send(new ProducerRecord<>(topic, payloadKey, payload));
+      final var consumer = getConsumer(jsonObjectKafkaListenerContainerFactory, topic, group);
+      final var record = KafkaTestUtils.getSingleRecord(consumer, topic, Duration.ofSeconds(30));
+      assertAll(() -> assertNotNull(record), () -> assertEquals(payloadKey, record.key()));
+      consumer.close();
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private <K, V> Consumer<K, V> getConsumer(
+      final ConcurrentKafkaListenerContainerFactory<K, V> containerFactory,
+      final String topicId,
+      final String groupId) {
+    final var consumer = containerFactory.getConsumerFactory().createConsumer(groupId, "clientId");
+    broker.consumeFromAnEmbeddedTopic(consumer, topicId);
+    return (Consumer<K, V>) consumer;
   }
 }

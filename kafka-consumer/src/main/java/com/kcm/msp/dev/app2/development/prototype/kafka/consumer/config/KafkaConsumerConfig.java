@@ -19,6 +19,7 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ContainerProperties.AckMode;
 import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.util.backoff.FixedBackOff;
 
@@ -101,8 +102,19 @@ public class KafkaConsumerConfig {
   private ConsumerFactory<String, Message> messageConsumerFactory() {
     Map<String, Object> props = new HashMap<>();
     props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaProperty.getBootstrapServers());
-    props.put(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-    props.put(VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+
+    /**
+     * Setting ErrorHandlingDeserializer for both key and value deserializer to handle
+     * deserialization error. The ErrorHandlingDeserializer wraps the actual deserializer and
+     * delegates the deserialization process to the underlying deserializer. If deserialization
+     * fails, it catches the error and provides a default behavior or delegates to a custom error
+     * handler *
+     */
+    props.put(KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
+    props.put(VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
+
+    props.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class);
+    props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
     props.put(
         TRUSTED_PACKAGES,
         "*"); // whitelist of package names that deserializer is allowed to deserialize

@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kcm.msp.dev.app2.development.prototype.kafka.consumer.models.Message;
 import java.time.Duration;
+import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 import org.apache.kafka.clients.consumer.Consumer;
@@ -122,17 +123,28 @@ public class KafkaConsumerIntegrationTest {
     }
 
     @Test
-    void customObjectMessageShouldInvokeKafkaConsumer() throws JsonProcessingException {
+    void customObjectsIncludingInvalidMessageShouldInvokeKafkaConsumer()
+        throws JsonProcessingException {
       final var topic = "int_test_message_obj-topic";
       final var group = "test_message-group1";
-      final var payloadKey = "test_message-key1";
-      final var payload =
-          new ObjectMapper()
-              .writeValueAsString(Message.builder().messageId("msgid").message("msg").build());
-      producer.send(new ProducerRecord<>(topic, payloadKey, payload));
+      final var payloadKey = "test_message-key";
+      final var payloads =
+          List.of(
+              "Invalid JSON",
+              new ObjectMapper()
+                  .writeValueAsString(Message.builder().messageId("msgid").message("msg").build()));
+      IntStream.range(0, payloads.size())
+          .mapToObj(id -> new ProducerRecord<>(topic, payloadKey + id, payloads.get(id)))
+          .forEach(s -> producer.send(s));
       final var consumer = getConsumer(messageKafkaListenerContainerFactory, topic, group);
-      final var record = KafkaTestUtils.getSingleRecord(consumer, topic, Duration.ofSeconds(30));
-      assertAll(() -> assertNotNull(record), () -> assertEquals(payloadKey, record.key()));
+      final var records = KafkaTestUtils.getRecords(consumer, Duration.ofSeconds(30));
+      assertAll(
+          () -> assertNotNull(records),
+          () -> assertTrue(records.count() > 0),
+          () ->
+              assertTrue(
+                  StreamSupport.stream(records.spliterator(), false)
+                      .anyMatch(r -> r.key() != null && r.key().contains(payloadKey))));
       consumer.close();
     }
   }

@@ -24,6 +24,7 @@ import org.springframework.kafka.listener.CommonErrorHandler;
 import org.springframework.kafka.listener.ConsumerRecordRecoverer;
 import org.springframework.kafka.listener.ContainerProperties.AckMode;
 import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.listener.RetryListener;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.util.backoff.FixedBackOff;
@@ -165,29 +166,35 @@ public class KafkaConsumerConfig {
   private DefaultErrorHandler defaultErrorHandler(long delayBtwnRetries, long retryAttempts) {
     // Retry 2 times with a 1 second delay in between retries
     final var fixedBackOff = new FixedBackOff(delayBtwnRetries, retryAttempts);
-    // custom logic to execute after retries are exhausted
-    final ConsumerRecordRecoverer recoverer =
-        (rec, exp) -> {
-          log.info(
-              "Message from topic {} could not be processed after multiple retries: {}",
-              rec.topic(),
-              rec.value(),
-              exp);
-        };
-    final var handler = new DefaultErrorHandler(recoverer, fixedBackOff);
+    final var handler = new DefaultErrorHandler(defaultRecordRecoverer(), fixedBackOff);
     // Ensures record is acknowledged only after error handling
     handler.setAckAfterHandle(false);
     // Add custom logic to handle RecordDeserializationException
     handler.addNotRetryableExceptions(RecordDeserializationException.class);
     // custom logic to execute during retries
-    handler.setRetryListeners(
-        (rec, ex, deliveryAttempt) -> {
-          log.info(
-              "Attempting retry for record in [topic:{}, key:{}] attemptCount:{}",
-              rec.topic(),
-              rec.key(),
-              deliveryAttempt);
-        });
+    handler.setRetryListeners(defaultRetryListener());
     return handler;
+  }
+
+  // logic to execute when attempting retries
+  private RetryListener defaultRetryListener() {
+    return (rec, ex, deliveryAttempt) -> {
+      log.info(
+          "Attempting retry for record in [topic:{}, key:{}] attemptCount:{}",
+          rec.topic(),
+          rec.key(),
+          deliveryAttempt);
+    };
+  }
+
+  // logic to execute when all the retry attempts are exhausted
+  private ConsumerRecordRecoverer defaultRecordRecoverer() {
+    return (rec, exp) -> {
+      log.info(
+          "Message from topic {} could not be processed after multiple retries: {}",
+          rec.topic(),
+          rec.value(),
+          exp);
+    };
   }
 }

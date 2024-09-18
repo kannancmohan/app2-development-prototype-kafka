@@ -125,7 +125,7 @@ public class KafkaConsumerIntegrationTest {
     void customObjectMessageShouldInvokeKafkaConsumer() throws JsonProcessingException {
       final var topic = "int_test_message_obj-topic";
       final var group = "test_message-group1";
-      final var payloadKey = "test_message-key";
+      final var payloadKey = "test_message-key1";
       final var payload =
           new ObjectMapper()
               .writeValueAsString(Message.builder().messageId("msgid").message("msg").build());
@@ -152,8 +152,8 @@ public class KafkaConsumerIntegrationTest {
     @Test
     void jsonMessageShouldInvokeKafkaConsumer() {
       final var topic = "int_test_json_obj-topic";
-      final var group = "test_message-group1";
-      final var payloadKey = "test_message-key";
+      final var group = "test_json-group1";
+      final var payloadKey = "test_message-key1";
       final var payload = "{\"id\": 1, \"name\": \"test\"}";
       producer.send(new ProducerRecord<>(topic, payloadKey, payload));
       final var consumer = getConsumer(jsonObjectKafkaListenerContainerFactory, topic, group);

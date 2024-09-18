@@ -6,3 +6,8 @@ spring:
     name: app2-development-prototype-kafka-consumer
   kafka:
     bootstrap-servers: 192.168.0.30:9093
+logging:
+  level:
+    org:
+      springframework:
+        kafka: DEBUG

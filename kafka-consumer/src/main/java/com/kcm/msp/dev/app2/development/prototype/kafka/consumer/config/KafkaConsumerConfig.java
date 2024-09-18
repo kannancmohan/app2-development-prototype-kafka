@@ -1,5 +1,6 @@
 package com.kcm.msp.dev.app2.development.prototype.kafka.consumer.config;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.*;
 import static org.springframework.kafka.support.serializer.JsonDeserializer.TRUSTED_PACKAGES;
 
@@ -10,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.errors.RecordDeserializationException;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +19,7 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.ConsumerRecordRecoverer;
 import org.springframework.kafka.listener.ContainerProperties.AckMode;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
@@ -39,12 +42,13 @@ public class KafkaConsumerConfig {
     return factory;
   }
 
-  @Bean // for consuming Message object
+  @Bean // for consuming Message object. Its configured to skips deserialization failures
   public ConcurrentKafkaListenerContainerFactory<String, Message>
       messageKafkaListenerContainerFactory() {
     final ConcurrentKafkaListenerContainerFactory<String, Message> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(messageConsumerFactory());
+    factory.setCommonErrorHandler(errorHandler(2L, 1000L));
     return factory;
   }
 
@@ -98,28 +102,29 @@ public class KafkaConsumerConfig {
     // props.put(ConsumerConfig.FETCH_MAX_BYTES_CONFIG, "20971520");
     return new DefaultKafkaConsumerFactory<>(props);
   }
-
   private ConsumerFactory<String, Message> messageConsumerFactory() {
-    Map<String, Object> props = new HashMap<>();
+    final Map<String, Object> props = new HashMap<>();
     props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaProperty.getBootstrapServers());
-
-    /**
-     * Setting ErrorHandlingDeserializer for both key and value deserializer to handle
-     * deserialization error. The ErrorHandlingDeserializer wraps the actual deserializer and
-     * delegates the deserialization process to the underlying deserializer. If deserialization
-     * fails, it catches the error and provides a default behavior or delegates to a custom error
-     * handler *
-     */
-    props.put(KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
-    props.put(VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
-
-    props.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class);
-    props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
-    props.put(
-        TRUSTED_PACKAGES,
-        "*"); // whitelist of package names that deserializer is allowed to deserialize
+    props.put(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
     props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, Message.class);
-    return new DefaultKafkaConsumerFactory<>(props);
+    props.put(TRUSTED_PACKAGES, "*"); // whitelist packages that is allowed to deserialize
+    /**
+     * Setting ErrorHandlingDeserializer as value deserializer to handle deserialization error. The
+     * ErrorHandlingDeserializer wraps the actual deserializer and delegates the deserialization
+     * process to the underlying deserializer(in this case JsonDeserializer)
+     */
+    final var valueDeserializer =
+        new ErrorHandlingDeserializer<>(new JsonDeserializer<>(Message.class));
+    // custom logic to handle Failed deserialized record
+    valueDeserializer.setFailedDeserializationFunction(
+        failedInfo -> {
+          final var data =
+              failedInfo.getData() != null ? new String(failedInfo.getData(), UTF_8) : "null";
+          log.error("failed deserializing [topic: {}, record: {}]", failedInfo.getTopic(), data);
+          return null; // could also provide a default value or custom error
+        });
+    return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), valueDeserializer);
   }
 
   private ConsumerFactory<String, JsonNode> jsonObjectConsumerFactory() {
@@ -144,5 +149,34 @@ public class KafkaConsumerConfig {
     props.put(FETCH_MIN_BYTES_CONFIG, 1024); // Minimum data to fetch in bytes
     props.put(FETCH_MAX_WAIT_MS_CONFIG, 5000); // Max wait time if data is less than FETCH_MIN_BYTES
     return new DefaultKafkaConsumerFactory<>(props);
+  }
+
+  private DefaultErrorHandler errorHandler(long retryAttempts, long delayBtwnRetries) {
+    // Retry 2 times with a 1 second delay in between retries
+    final var fixedBackOff = new FixedBackOff(delayBtwnRetries, retryAttempts);
+    // custom logic to execute after retries are exhausted
+    final ConsumerRecordRecoverer recoverer =
+        (rec, exp) -> {
+          log.info(
+              "Message from topic {} could not be processed after multiple retries: {}",
+              rec.topic(),
+              rec.value(),
+              exp);
+        };
+    final var handler = new DefaultErrorHandler(recoverer, fixedBackOff);
+    // Ensures record is acknowledged only after error handling
+    handler.setAckAfterHandle(false);
+    // Add custom logic to handle RecordDeserializationException
+    handler.addNotRetryableExceptions(RecordDeserializationException.class);
+    // custom logic to execute during retries
+    handler.setRetryListeners(
+        (rec, ex, deliveryAttempt) -> {
+          log.info(
+              "Attempting retry for record in [topic:{}, key:{}] attemptCount:{}",
+              rec.topic(),
+              rec.key(),
+              deliveryAttempt);
+        });
+    return handler;
   }
 }

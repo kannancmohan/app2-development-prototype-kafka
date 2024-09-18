@@ -128,11 +128,12 @@ public class KafkaConsumerIntegrationTest {
       final var topic = "int_test_message_obj-topic";
       final var group = "test_message-group1";
       final var payloadKey = "test_message-key";
+      final var msg_id = "msgid";
       final var payloads =
           List.of(
               "Invalid JSON",
               new ObjectMapper()
-                  .writeValueAsString(Message.builder().messageId("msgid").message("msg").build()));
+                  .writeValueAsString(Message.builder().messageId(msg_id).message("msg").build()));
       IntStream.range(0, payloads.size())
           .mapToObj(id -> new ProducerRecord<>(topic, payloadKey + id, payloads.get(id)))
           .forEach(s -> producer.send(s));
@@ -144,7 +145,7 @@ public class KafkaConsumerIntegrationTest {
           () ->
               assertTrue(
                   StreamSupport.stream(records.spliterator(), false)
-                      .anyMatch(r -> r.key() != null && r.key().contains(payloadKey))));
+                      .anyMatch(r -> r.value() != null && msg_id.equals(r.value().messageId()))));
       consumer.close();
     }
   }

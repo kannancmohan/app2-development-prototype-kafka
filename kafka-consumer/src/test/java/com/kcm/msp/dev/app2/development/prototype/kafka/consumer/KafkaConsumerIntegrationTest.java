@@ -1,7 +1,6 @@
 package com.kcm.msp.dev.app2.development.prototype.kafka.consumer;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
@@ -141,32 +140,6 @@ public class KafkaConsumerIntegrationTest {
               assertTrue(
                   StreamSupport.stream(records.spliterator(), false)
                       .anyMatch(r -> r.value() != null && msg_id.equals(r.value().messageId()))));
-      consumer.close();
-    }
-  }
-
-  @Nested
-  @TestInstance(PER_CLASS)
-  class TestJsonPayload {
-    private Producer<String, String> producer;
-
-    @BeforeAll
-    void beforeAll() {
-      final var producerProperties = kafkaProperties.buildProducerProperties(null);
-      // final var producerProperties = KafkaTestUtils.producerProps(broker);
-      producer = new KafkaProducer<>(producerProperties);
-    }
-
-    @Test
-    void jsonMessageShouldInvokeKafkaConsumer() {
-      final var topic = "int_test_json_obj-topic";
-      final var group = "test_json-group1";
-      final var payloadKey = "test_message-key1";
-      final var payload = "{\"id\": 1, \"name\": \"test\"}";
-      producer.send(new ProducerRecord<>(topic, payloadKey, payload));
-      final var consumer = getConsumer(jsonContainerFactory, topic, group);
-      final var record = KafkaTestUtils.getSingleRecord(consumer, topic, Duration.ofSeconds(30));
-      assertAll(() -> assertNotNull(record), () -> assertEquals(payloadKey, record.key()));
       consumer.close();
     }
   }

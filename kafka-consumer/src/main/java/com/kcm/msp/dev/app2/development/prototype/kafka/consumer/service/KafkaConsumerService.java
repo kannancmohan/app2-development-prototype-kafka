@@ -1,14 +1,11 @@
 package com.kcm.msp.dev.app2.development.prototype.kafka.consumer.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.kcm.msp.dev.app2.development.prototype.kafka.consumer.models.Message;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
-import org.springframework.kafka.support.KafkaHeaders;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
@@ -46,17 +43,5 @@ public class KafkaConsumerService {
               log.error("Error in processing message: {}", message, ex);
               return null;
             });
-  }
-
-  @KafkaListener(
-      topics = {"test_json_obj-topic"},
-      groupId = "test_json_obj-group1",
-      containerFactory = "jsonContainerFactory")
-  public void consumeJson(
-      @Payload final JsonNode message,
-      @Header(KafkaHeaders.RECEIVED_TOPIC) final String topic,
-      final Acknowledgment acknowledgment) {
-    log.info("Received [ topic:{} JsonObject message: {}]", topic, message);
-    acknowledgment.acknowledge(); // Acknowledge the message after successful processing
   }
 }

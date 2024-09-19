@@ -4,7 +4,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.*;
 import static org.springframework.kafka.support.serializer.JsonDeserializer.TRUSTED_PACKAGES;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.kcm.msp.dev.app2.development.prototype.kafka.consumer.models.Message;
 import com.kcm.msp.dev.app2.development.prototype.kafka.consumer.properties.KafkaProperty;
 import java.util.HashMap;
@@ -56,30 +55,6 @@ public class KafkaConsumerConfig {
     return factory;
   }
 
-  @Bean // for consuming json object
-  public ConcurrentKafkaListenerContainerFactory<String, JsonNode> jsonContainerFactory() {
-    // remove if custom errorHandler is not required
-    final var errorHandler =
-        new DefaultErrorHandler(
-            (consumerRecord, exception) -> {
-              // add logic to execute retry attempts are exhausted. eg send to a dead-letter topic
-              log.error(
-                  "Message from topic {} could not be processed after multiple retries: {}",
-                  consumerRecord.topic(),
-                  consumerRecord.value(),
-                  exception);
-            },
-            new FixedBackOff(1000L, 2L)); // Retry twice with 1 second delay
-
-    final ConcurrentKafkaListenerContainerFactory<String, JsonNode> factory =
-        new ConcurrentKafkaListenerContainerFactory<>();
-    factory.setConsumerFactory(jsonConsumerFactory());
-    // If error handling and resilience are critical for you, it's recommended to set AckMode.RECORD
-    factory.getContainerProperties().setAckMode(AckMode.RECORD);
-    factory.setCommonErrorHandler(errorHandler);
-    return factory;
-  }
-
   @Bean // for batch consuming string messages
   public ConcurrentKafkaListenerContainerFactory<String, String> batchContainerFactory() {
     final ConcurrentKafkaListenerContainerFactory<String, String> factory =
@@ -126,18 +101,6 @@ public class KafkaConsumerConfig {
           return null; // could also provide a default value or custom error
         });
     return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), valueDeserializer);
-  }
-
-  private ConsumerFactory<String, JsonNode> jsonConsumerFactory() {
-    Map<String, Object> props = new HashMap<>();
-    props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaProperty.getBootstrapServers());
-    // Disable auto commit. make sure its manually done after message is successfully processed
-    props.put(ENABLE_AUTO_COMMIT_CONFIG, false);
-    props.put(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-    props.put(VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-    props.put(TRUSTED_PACKAGES, "*"); // whitelist of package names allowed to deserialize
-    props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, JsonNode.class);
-    return new DefaultKafkaConsumerFactory<>(props);
   }
 
   private ConsumerFactory<String, String> batchConsumerFactory() {

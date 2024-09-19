@@ -51,6 +51,8 @@ public class KafkaConsumerConfig {
     final ConcurrentKafkaListenerContainerFactory<String, Message> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(messageConsumerFactory());
+    factory.setConcurrency(3); // Set concurrency for parallelism
+    factory.getContainerProperties().setAckMode(AckMode.MANUAL); // Use manual acknowledgment
     factory.setCommonErrorHandler(commonErrorHandler());
     return factory;
   }
@@ -109,6 +111,8 @@ public class KafkaConsumerConfig {
   private ConsumerFactory<String, Message> messageConsumerFactory() {
     final Map<String, Object> props = new HashMap<>();
     props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaProperty.getBootstrapServers());
+    // Disable auto commit. make sure its manually done after message is successfully processed
+    props.put(ENABLE_AUTO_COMMIT_CONFIG, false);
     props.put(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
     props.put(VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
     props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, Message.class);

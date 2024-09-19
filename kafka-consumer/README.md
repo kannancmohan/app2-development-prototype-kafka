@@ -57,15 +57,15 @@ public void consumeMessage(@Payload final Message message) {
 
 ```
 @Bean
-public RetryTopicConfiguration retryTopicConfig() {
+public RetryTopicConfiguration retryTopicConfig(KafkaTemplate<String, String> template) {
     return RetryTopicConfigurationBuilder
         .newInstance()
         .fixedBackOff(2000L)        // Delay of 2 seconds between retries
         .maxAttempts(3)             // Retry up to 3 times
         .includeTopics("my-topic")  // Only apply to "my-topic"
         .retryTopicSuffix(".retry") // Custom suffix for retry topics
-        .deadLetterTopic("my-topic.DLT") // Specify Dead Letter Topic
-        .create();
+        .concurrency(2)
+        .create(template);
 }
 ```
 

@@ -25,11 +25,11 @@ public void listen(String message, Acknowledgment acknowledgment) {
 
 ## Configuring a non-blocking consumer
 
-* Option1: Update ConcurrentKafkaListenerContainerFactory
-* Option2: Configuring a new RetryTopicConfiguration.
+* Option1: Non blocking using custom async logic
+* Option2: Non blocking using RetryTopicConfiguration or @RetryableTopic
   RetryTopicConfiguration provides ootb support for retrying failed Kafka message processing using dedicated retry topics
 
-## Option1: Non blocking using custom async logic
+### Option1: Non blocking using custom async logic
 
 1. set Concurrency in ConcurrentKafkaListenerContainerFactory
 
@@ -53,7 +53,9 @@ public void consumeMessage(@Payload final Message message) {
 }
 ```
 
-## Option2: Non blocking using Configuring a new RetryTopicConfiguration
+### Option2: Non blocking using RetryTopicConfiguration or @RetryableTopic
+
+1. Using RetryTopicConfiguration
 
 ```
 @Bean
@@ -66,6 +68,16 @@ public RetryTopicConfiguration retryTopicConfig(KafkaTemplate<String, String> te
         .retryTopicSuffix(".retry") // Custom suffix for retry topics
         .concurrency(2)
         .create(template);
+}
+```
+
+2. Using @RetryableTopic annotation
+
+```
+@RetryableTopic(kafkaTemplate = "kafkaTemplate",attempts = "4", backoff = @Backoff(delay = 3000, multiplier = 1.5, maxDelay = 15000))
+@KafkaListener(topics = "my-topic", groupId = "batch-group")
+public void orderEventListener(@Payload final Message message, Acknowledgment ack) throws SocketException {
+    log.info("Object message: {}", message)
 }
 ```
 

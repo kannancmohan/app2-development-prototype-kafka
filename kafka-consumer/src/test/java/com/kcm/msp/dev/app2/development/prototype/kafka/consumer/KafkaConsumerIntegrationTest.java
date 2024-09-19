@@ -45,19 +45,14 @@ public class KafkaConsumerIntegrationTest {
   @Autowired private EmbeddedKafkaBroker broker;
 
   @Autowired
-  private ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory;
+  private ConcurrentKafkaListenerContainerFactory<String, String> defaultContainerFactory;
+
+  @Autowired private ConcurrentKafkaListenerContainerFactory<String, String> batchContainerFactory;
 
   @Autowired
-  private ConcurrentKafkaListenerContainerFactory<String, String>
-      batchKafkaListenerContainerFactory;
+  private ConcurrentKafkaListenerContainerFactory<String, Message> messageContainerFactory;
 
-  @Autowired
-  private ConcurrentKafkaListenerContainerFactory<String, Message>
-      messageKafkaListenerContainerFactory;
-
-  @Autowired
-  private ConcurrentKafkaListenerContainerFactory<String, JsonNode>
-      jsonObjectKafkaListenerContainerFactory;
+  @Autowired private ConcurrentKafkaListenerContainerFactory<String, JsonNode> jsonContainerFactory;
 
   @Nested
   @TestInstance(PER_CLASS)
@@ -79,7 +74,7 @@ public class KafkaConsumerIntegrationTest {
       final var payloadKey = "test_string-key";
       final var payload = "Sending with our own simple KafkaProducer";
       producer.send(new ProducerRecord<>(topic, payloadKey, payload));
-      final var consumer = getConsumer(kafkaListenerContainerFactory, topic, group);
+      final var consumer = getConsumer(defaultContainerFactory, topic, group);
       final var records = KafkaTestUtils.getRecords(consumer, Duration.ofSeconds(30));
       assertAll(
           () -> assertNotNull(records),
@@ -99,11 +94,11 @@ public class KafkaConsumerIntegrationTest {
       IntStream.range(0, noOfRecords)
           .mapToObj(id -> new ProducerRecord<>(topic, "test-key_" + id, "payload_" + id))
           .forEach(r -> producer.send(r));
-      final var consumer = getConsumer(batchKafkaListenerContainerFactory, topic, group);
+      final var consumer = getConsumer(batchContainerFactory, topic, group);
       final var records = KafkaTestUtils.getRecords(consumer, Duration.ofSeconds(60));
       assertAll(
-          () -> assertNotNull(batchKafkaListenerContainerFactory),
-          () -> assertTrue(batchKafkaListenerContainerFactory.isBatchListener()),
+          () -> assertNotNull(batchContainerFactory),
+          () -> assertTrue(batchContainerFactory.isBatchListener()),
           () -> assertNotNull(records),
           () -> assertTrue(records.count() >= noOfRecords));
       consumer.close();
@@ -137,7 +132,7 @@ public class KafkaConsumerIntegrationTest {
       IntStream.range(0, payloads.size())
           .mapToObj(id -> new ProducerRecord<>(topic, payloadKey + id, payloads.get(id)))
           .forEach(s -> producer.send(s));
-      final var consumer = getConsumer(messageKafkaListenerContainerFactory, topic, group);
+      final var consumer = getConsumer(messageContainerFactory, topic, group);
       final var records = KafkaTestUtils.getRecords(consumer, Duration.ofSeconds(30));
       assertAll(
           () -> assertNotNull(records),
@@ -169,7 +164,7 @@ public class KafkaConsumerIntegrationTest {
       final var payloadKey = "test_message-key1";
       final var payload = "{\"id\": 1, \"name\": \"test\"}";
       producer.send(new ProducerRecord<>(topic, payloadKey, payload));
-      final var consumer = getConsumer(jsonObjectKafkaListenerContainerFactory, topic, group);
+      final var consumer = getConsumer(jsonContainerFactory, topic, group);
       final var record = KafkaTestUtils.getSingleRecord(consumer, topic, Duration.ofSeconds(30));
       assertAll(() -> assertNotNull(record), () -> assertEquals(payloadKey, record.key()));
       consumer.close();

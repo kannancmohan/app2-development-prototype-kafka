@@ -38,16 +38,15 @@ public class KafkaConsumerConfig {
   private final KafkaProperty kafkaProperty;
 
   @Bean // for consuming string message
-  public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory() {
+  public ConcurrentKafkaListenerContainerFactory<String, String> defaultContainerFactory() {
     final ConcurrentKafkaListenerContainerFactory<String, String> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
-    factory.setConsumerFactory(consumerFactory());
+    factory.setConsumerFactory(defaultConsumerFactory());
     return factory;
   }
 
   @Bean // for consuming Message object. Its configured to skips deserialization failures
-  public ConcurrentKafkaListenerContainerFactory<String, Message>
-      messageKafkaListenerContainerFactory() {
+  public ConcurrentKafkaListenerContainerFactory<String, Message> messageContainerFactory() {
     final ConcurrentKafkaListenerContainerFactory<String, Message> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(messageConsumerFactory());
@@ -58,8 +57,7 @@ public class KafkaConsumerConfig {
   }
 
   @Bean // for consuming json object
-  public ConcurrentKafkaListenerContainerFactory<String, JsonNode>
-      jsonObjectKafkaListenerContainerFactory() {
+  public ConcurrentKafkaListenerContainerFactory<String, JsonNode> jsonContainerFactory() {
     // remove if custom errorHandler is not required
     final var errorHandler =
         new DefaultErrorHandler(
@@ -75,7 +73,7 @@ public class KafkaConsumerConfig {
 
     final ConcurrentKafkaListenerContainerFactory<String, JsonNode> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
-    factory.setConsumerFactory(jsonObjectConsumerFactory());
+    factory.setConsumerFactory(jsonConsumerFactory());
     // If error handling and resilience are critical for you, it's recommended to set AckMode.RECORD
     factory.getContainerProperties().setAckMode(AckMode.RECORD);
     factory.setCommonErrorHandler(errorHandler);
@@ -83,8 +81,7 @@ public class KafkaConsumerConfig {
   }
 
   @Bean // for batch consuming string messages
-  public ConcurrentKafkaListenerContainerFactory<String, String>
-      batchKafkaListenerContainerFactory() {
+  public ConcurrentKafkaListenerContainerFactory<String, String> batchContainerFactory() {
     final ConcurrentKafkaListenerContainerFactory<String, String> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(batchConsumerFactory());
@@ -93,7 +90,7 @@ public class KafkaConsumerConfig {
     return factory;
   }
 
-  private ConsumerFactory<String, String> consumerFactory() {
+  private ConsumerFactory<String, String> defaultConsumerFactory() {
     final Map<String, Object> props = new HashMap<>();
     props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaProperty.getBootstrapServers());
     props.put(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
@@ -131,7 +128,7 @@ public class KafkaConsumerConfig {
     return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), valueDeserializer);
   }
 
-  private ConsumerFactory<String, JsonNode> jsonObjectConsumerFactory() {
+  private ConsumerFactory<String, JsonNode> jsonConsumerFactory() {
     Map<String, Object> props = new HashMap<>();
     props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaProperty.getBootstrapServers());
     // Disable auto commit. make sure its manually done after message is successfully processed

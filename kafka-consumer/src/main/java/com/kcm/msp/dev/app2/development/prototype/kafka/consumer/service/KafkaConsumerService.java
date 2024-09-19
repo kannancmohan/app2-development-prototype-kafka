@@ -26,7 +26,7 @@ public class KafkaConsumerService {
   @KafkaListener(
       topics = {"test_string-topic"},
       groupId = "test_batch_string-group1",
-      containerFactory = "batchKafkaListenerContainerFactory")
+      containerFactory = "batchContainerFactory")
   public void consumeBatchString(@Payload final List<String> messages) {
     for (final String message : messages) {
       log.info("[Batch]String message: {}", message);
@@ -36,7 +36,7 @@ public class KafkaConsumerService {
   @KafkaListener(
       topics = {"test_message_obj-topic"},
       groupId = "test_message_obj-group1",
-      containerFactory = "messageKafkaListenerContainerFactory")
+      containerFactory = "messageContainerFactory")
   public void consumeMessage(@Payload final Message message, final Acknowledgment acknowledgment) {
     CompletableFuture.runAsync(() -> log.info("Object message: {}", message))
         .thenRun(acknowledgment::acknowledge) // Acknowledge the message after successful processing
@@ -51,7 +51,7 @@ public class KafkaConsumerService {
   @KafkaListener(
       topics = {"test_json_obj-topic"},
       groupId = "test_json_obj-group1",
-      containerFactory = "jsonObjectKafkaListenerContainerFactory")
+      containerFactory = "jsonContainerFactory")
   public void consumeJson(
       @Payload final JsonNode message,
       @Header(KafkaHeaders.RECEIVED_TOPIC) final String topic,

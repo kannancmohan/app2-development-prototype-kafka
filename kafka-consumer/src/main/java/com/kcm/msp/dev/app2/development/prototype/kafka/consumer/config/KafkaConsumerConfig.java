@@ -112,7 +112,7 @@ public class KafkaConsumerConfig {
     props.put(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
     props.put(VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
     props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, Message.class);
-    props.put(TRUSTED_PACKAGES, "*"); // whitelist packages that is allowed to deserialize
+    props.put(TRUSTED_PACKAGES, "*"); // whitelist of package names allowed to deserialize
     /**
      * Setting ErrorHandlingDeserializer as value deserializer to handle deserialization error. The
      * ErrorHandlingDeserializer wraps the actual deserializer and delegates the deserialization
@@ -138,9 +138,7 @@ public class KafkaConsumerConfig {
     props.put(ENABLE_AUTO_COMMIT_CONFIG, false);
     props.put(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
     props.put(VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-    props.put(
-        TRUSTED_PACKAGES,
-        "*"); // whitelist of package names that deserializer is allowed to deserialize
+    props.put(TRUSTED_PACKAGES, "*"); // whitelist of package names allowed to deserialize
     props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, JsonNode.class);
     return new DefaultKafkaConsumerFactory<>(props);
   }

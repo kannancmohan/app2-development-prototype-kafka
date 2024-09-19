@@ -10,4 +10,4 @@ logging:
   level:
     org:
       springframework:
-        kafka: DEBUG
+        kafka: WARN

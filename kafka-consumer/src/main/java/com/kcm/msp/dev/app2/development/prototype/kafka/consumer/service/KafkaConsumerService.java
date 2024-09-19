@@ -37,7 +37,7 @@ public class KafkaConsumerService {
       topics = {"test_message_obj-topic"},
       groupId = "test_message_obj-group1",
       containerFactory = "messageKafkaListenerContainerFactory")
-  public void consumeMessage(@Payload final Message message, Acknowledgment acknowledgment) {
+  public void consumeMessage(@Payload final Message message, final Acknowledgment acknowledgment) {
     CompletableFuture.runAsync(() -> log.info("Object message: {}", message))
         .thenRun(acknowledgment::acknowledge) // Acknowledge the message after successful processing
         .exceptionally(
@@ -53,7 +53,10 @@ public class KafkaConsumerService {
       groupId = "test_json_obj-group1",
       containerFactory = "jsonObjectKafkaListenerContainerFactory")
   public void consumeJson(
-      @Payload final JsonNode message, @Header(KafkaHeaders.RECEIVED_TOPIC) String topic) {
+      @Payload final JsonNode message,
+      @Header(KafkaHeaders.RECEIVED_TOPIC) final String topic,
+      final Acknowledgment acknowledgment) {
     log.info("Received [ topic:{} JsonObject message: {}]", topic, message);
+    acknowledgment.acknowledge(); // Acknowledge the message after successful processing
   }
 }

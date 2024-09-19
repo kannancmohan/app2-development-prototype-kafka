@@ -76,12 +76,8 @@ public class KafkaConsumerConfig {
     final ConcurrentKafkaListenerContainerFactory<String, JsonNode> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(jsonObjectConsumerFactory());
-    factory
-        .getContainerProperties()
-        .setAckMode(
-            AckMode.RECORD); // If precise error handling and resilience are critical for your
-    // application, it's recommended to explicitly set the acknowledgment mode
-    // to AckMode.RECORD
+    // If error handling and resilience are critical for you, it's recommended to set AckMode.RECORD
+    factory.getContainerProperties().setAckMode(AckMode.RECORD);
     factory.setCommonErrorHandler(errorHandler);
     return factory;
   }
@@ -138,6 +134,8 @@ public class KafkaConsumerConfig {
   private ConsumerFactory<String, JsonNode> jsonObjectConsumerFactory() {
     Map<String, Object> props = new HashMap<>();
     props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaProperty.getBootstrapServers());
+    // Disable auto commit. make sure its manually done after message is successfully processed
+    props.put(ENABLE_AUTO_COMMIT_CONFIG, false);
     props.put(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
     props.put(VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
     props.put(

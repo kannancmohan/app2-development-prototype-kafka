@@ -51,6 +51,7 @@ public class KafkaConsumerConfig {
     factory.setConsumerFactory(messageConsumerFactory());
     factory.setConcurrency(3); // Set concurrency for parallelism
     factory.getContainerProperties().setAckMode(AckMode.MANUAL); // Use manual acknowledgment
+    //factory.getContainerProperties().setAsyncAcks(true); // asynchronously acknowledge msg
     factory.setCommonErrorHandler(commonErrorHandler());
     return factory;
   }

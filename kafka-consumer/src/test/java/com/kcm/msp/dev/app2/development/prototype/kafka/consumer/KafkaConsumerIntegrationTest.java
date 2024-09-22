@@ -1,23 +1,28 @@
 package com.kcm.msp.dev.app2.development.prototype.kafka.consumer;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kcm.msp.dev.app2.development.prototype.kafka.consumer.models.Message;
 import java.time.Duration;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.errors.CorruptRecordException;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -25,19 +30,29 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.kafka.support.KafkaMessageHeaderAccessor;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.stereotype.Component;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.DisabledIf;
 
+@ActiveProfiles("test")
 @Tag("IntegrationTest")
 @DisabledIf(expression = "#{environment['skip.integration.test'] == 'true'}")
 @SpringBootTest(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @EmbeddedKafka(
     partitions = 2,
-    topics = {"int_test_string-topic", "int_test_message_obj-topic", "int_test_json_obj-topic"})
+    topics = {"int_test_string-topic", "int_test_message_obj-topic"})
 public class KafkaConsumerIntegrationTest {
+
+  private static final String CUSTOM_OBJECT_TOPIC = "int_test_message_obj-topic";
 
   @Autowired private KafkaProperties kafkaProperties;
 
@@ -48,10 +63,7 @@ public class KafkaConsumerIntegrationTest {
 
   @Autowired private ConcurrentKafkaListenerContainerFactory<String, String> batchContainerFactory;
 
-  @Autowired
-  private ConcurrentKafkaListenerContainerFactory<String, Message> messageContainerFactory;
-
-  @Autowired private ConcurrentKafkaListenerContainerFactory<String, JsonNode> jsonContainerFactory;
+  @Autowired CheckRetryAttempts checkRetryAttempts;
 
   @Nested
   @TestInstance(PER_CLASS)
@@ -117,30 +129,32 @@ public class KafkaConsumerIntegrationTest {
     }
 
     @Test
+    @DisplayName(
+        "invalid payload should be handled by error-handler & listener errors should be retried")
     void customObjectsIncludingInvalidMessageShouldInvokeKafkaConsumer()
-        throws JsonProcessingException {
-      final var topic = "int_test_message_obj-topic";
-      final var group = "test_message-group1";
-      final var payloadKey = "test_message-key";
-      final var msg_id = "msgid";
+        throws JsonProcessingException, InterruptedException {
+      final var objectMapper = new ObjectMapper();
       final var payloads =
-          List.of(
-              "Invalid JSON",
-              new ObjectMapper()
-                  .writeValueAsString(Message.builder().messageId(msg_id).message("msg").build()));
-      IntStream.range(0, payloads.size())
-          .mapToObj(id -> new ProducerRecord<>(topic, payloadKey + id, payloads.get(id)))
-          .forEach(s -> producer.send(s));
-      final var consumer = getConsumer(messageContainerFactory, topic, group);
-      final var records = KafkaTestUtils.getRecords(consumer, Duration.ofSeconds(30));
+          Map.of(
+              "key_1", "Invalid JSON",
+              "key_2",
+                  objectMapper.writeValueAsString(
+                      Message.builder().messageId(null).message("msg_msg_1").build()),
+              "key_3",
+                  objectMapper.writeValueAsString(
+                      Message.builder().messageId("msg_id_2").message("msg_msg_2").build()));
+      payloads.forEach((k, v) -> producer.send(new ProducerRecord<>(CUSTOM_OBJECT_TOPIC, k, v)));
+      boolean isExpectedInvocations = checkRetryAttempts.countDown.await(30, TimeUnit.SECONDS);
+      final Map<String, Integer> expectedAttempts = checkRetryAttempts.attempts;
       assertAll(
-          () -> assertNotNull(records),
-          () -> assertTrue(records.count() > 0),
+          () -> assertTrue(isExpectedInvocations),
+          () -> assertFalse(expectedAttempts.containsKey("key_1")),
           () ->
               assertTrue(
-                  StreamSupport.stream(records.spliterator(), false)
-                      .anyMatch(r -> r.value() != null && msg_id.equals(r.value().messageId()))));
-      consumer.close();
+                  expectedAttempts.containsKey("key_2") && expectedAttempts.get("key_2") > 1),
+          () ->
+              assertTrue(
+                  expectedAttempts.containsKey("key_3") && expectedAttempts.get("key_3") == 1));
     }
   }
 
@@ -152,5 +166,28 @@ public class KafkaConsumerIntegrationTest {
     final var consumer = containerFactory.getConsumerFactory().createConsumer(groupId, "clientId");
     broker.consumeFromAnEmbeddedTopic(consumer, topicId);
     return (Consumer<K, V>) consumer;
+  }
+
+  @Component
+  static class CheckRetryAttempts {
+    final int totalInvocation = 4;
+    final Map<String, Integer> attempts = new HashMap<>();
+    final CountDownLatch countDown = new CountDownLatch(totalInvocation);
+
+    @KafkaListener(
+        topics = CUSTOM_OBJECT_TOPIC,
+        groupId = "test_message-group1",
+        containerFactory = "messageContainerFactory",
+        autoStartup = "true")
+    void consumeMessage(
+        @Payload final Message message,
+        @Header(KafkaHeaders.RECEIVED_KEY) String key,
+        KafkaMessageHeaderAccessor accessor) {
+      this.countDown.countDown();
+      attempts.compute(key, (k, v) -> v != null ? v + 1 : 1);
+      if (message == null || message.messageId() == null) {
+        throw new CorruptRecordException("Corrupt record");
+      }
+    }
   }
 }

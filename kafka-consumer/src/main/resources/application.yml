@@ -11,3 +11,16 @@ logging:
     org:
       springframework:
         kafka: WARN
+# custom properties
+consumers:
+  string_consumer:
+    topics: test_string-topic
+    groupId: test_string-group1
+  batch_string_consumer:
+    topics: test_string-topic
+    groupId: test_batch_string-group1
+    containerFactory: batchContainerFactory
+  message_consumer:
+    topics: test_message_obj-topic
+    groupId: test_message_obj-group1
+    containerFactory: messageContainerFactory

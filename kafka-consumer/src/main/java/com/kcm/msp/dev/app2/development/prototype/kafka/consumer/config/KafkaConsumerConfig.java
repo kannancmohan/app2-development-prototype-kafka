@@ -44,17 +44,6 @@ public class KafkaConsumerConfig {
     return factory;
   }
 
-  @Bean // for consuming Message object. Its configured to skips deserialization failures
-  public ConcurrentKafkaListenerContainerFactory<String, Message> messageContainerFactory() {
-    final ConcurrentKafkaListenerContainerFactory<String, Message> factory =
-        new ConcurrentKafkaListenerContainerFactory<>();
-    factory.setConsumerFactory(messageConsumerFactory());
-    factory.setConcurrency(3); // Set concurrency for parallelism
-    factory.getContainerProperties().setAckMode(AckMode.MANUAL); // Use manual acknowledgment
-    factory.setCommonErrorHandler(commonErrorHandler());
-    return factory;
-  }
-
   @Bean // for batch consuming string messages
   public ConcurrentKafkaListenerContainerFactory<String, String> batchContainerFactory() {
     final ConcurrentKafkaListenerContainerFactory<String, String> factory =
@@ -62,6 +51,19 @@ public class KafkaConsumerConfig {
     factory.setConsumerFactory(batchConsumerFactory());
     factory.setBatchListener(true); // Enable batch mode
     factory.setConcurrency(3); // Optional: sets the number of concurrent threads
+    return factory;
+  }
+
+  @Bean // for consuming Message object. Its configured to skips deserialization failures
+  public ConcurrentKafkaListenerContainerFactory<String, Message> messageContainerFactory() {
+    final ConcurrentKafkaListenerContainerFactory<String, Message> factory =
+        new ConcurrentKafkaListenerContainerFactory<>();
+    factory.setConsumerFactory(messageConsumerFactory());
+    factory.setConcurrency(3); // Set concurrency for parallelism
+    factory.getContainerProperties().setAckMode(AckMode.MANUAL); // Use manual acknowledgment
+    // factory.getContainerProperties().setAsyncAcks(true); // asynchronously acknowledge msg
+    // factory.getContainerProperties().setDeliveryAttemptHeader(true); //include delivery attempt
+    factory.setCommonErrorHandler(commonErrorHandler());
     return factory;
   }
 

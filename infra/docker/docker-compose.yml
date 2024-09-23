@@ -16,6 +16,8 @@ services:
     ports:
       - 9092:9092
       - 9093:9093 # SASL_SSL listener
+#    command: "bash -c 'kafka-topics --zookeeper zookeeper:2181 --create --if-not-exists --partitions 2 --replication-factor 1 --topic consumer_group_implementation_test && \
+#                       kafka-topics --zookeeper zookeeper:2181 --create --if-not-exists --partitions 2 --replication-factor 1 --topic test0p8p0 '"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181

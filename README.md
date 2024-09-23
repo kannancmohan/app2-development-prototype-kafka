@@ -58,7 +58,9 @@ Execute './mvnw spotless:check' to view code style violations and use './mvnw sp
 [Check producer README](kafka-producer/README.md)
 
 ## Local kafka broker and kafka-ui
+
 make sure to update the .env file
+
 ```
 cd infra/docker
 docker-compose up -d

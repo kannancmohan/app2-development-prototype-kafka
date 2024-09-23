@@ -1,0 +1,63 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ .Release.Name }}
+    version: {{ .Chart.Version }}
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.Version }}
+  name: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicas }}
+  #revisionHistoryLimit: 2 #number of old ReplicaSets (deployments' revisions) to retain
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+      app.kubernetes.io/name: {{ .Release.Name }}
+  template:
+    metadata:
+#      annotations:
+#        prometheus.io/path: /actuator/prometheus
+#        prometheus.io/scrape: "true"
+#        prometheus.io/port: "{{ .Values.appPort }}"
+      labels:
+        app: {{ .Release.Name }}
+        version: {{ .Chart.Version }}
+        app.kubernetes.io/name: {{ .Release.Name }}
+        app.kubernetes.io/version: {{ .Chart.Version }}
+      #name: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Release.Name }}-container
+          image: kannan2024/app2-development-prototype-kafka-consumer:{{ .Chart.AppVersion }}
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.appPort }}
+              scheme: HTTP
+            initialDelaySeconds: 180
+            successThreshold: 1
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.appPort }}
+              scheme: HTTP
+            initialDelaySeconds: 10
+            successThreshold: 1
+          securityContext:
+            privileged: false
+          env:
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+      imagePullSecrets:
+        - name: docker-registry-secret

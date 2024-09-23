@@ -74,7 +74,11 @@ Execute './mvnw spotless:check' to view code style violations and use './mvnw sp
 ../mvnw clean install -U -Pjkube-build-push -Djkube.docker.username=<your-dockerhub-username> -Djkube.docker.password=<your-dockerhub-password>
 ```
 
-eg: ../mvnw clean install -U -Pjkube-build-push -Djkube.docker.username=kannan2024 -Djkube.docker.password=password
+eg:
+
+```
+../mvnw clean install -U -Pjkube-build-push -Djkube.docker.username=kannan2024 -Djkube.docker.password=password
+```
 
 To manually pull and run container-image using docker
 

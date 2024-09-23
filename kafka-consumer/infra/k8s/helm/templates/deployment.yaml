@@ -30,8 +30,8 @@ spec:
     spec:
       containers:
         - name: {{ .Release.Name }}-container
-          image: kannan2024/app2-development-prototype-kafka-consumer:{{ .Chart.AppVersion }}
-          imagePullPolicy: Always
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           livenessProbe:
             failureThreshold: 3
             httpGet:

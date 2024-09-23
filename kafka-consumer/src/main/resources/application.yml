@@ -14,13 +14,13 @@ logging:
 # custom properties
 consumers:
   string_consumer:
-    topics: test_string-topic
-    groupId: test_string-group1
+    topics: app2.development.prototype.kafka.dev.string.event.v1
+    groupId: app2.development.prototype.kafka-dev-kafka-consumer-group1
   batch_string_consumer:
-    topics: test_string-topic
-    groupId: test_batch_string-group1
+    topics: app2.development.prototype.kafka.dev.string.event.v1
+    groupId: app2.development.prototype.kafka-dev-kafka-consumer-group2
     containerFactory: batchContainerFactory
   message_consumer:
-    topics: test_message_obj-topic
-    groupId: test_message_obj-group1
+    topics: app2.development.prototype.kafka.dev.message.event.v1
+    groupId: app2.development.prototype.kafka-dev-kafka-consumer-group3
     containerFactory: messageContainerFactory

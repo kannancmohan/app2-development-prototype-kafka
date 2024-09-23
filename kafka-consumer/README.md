@@ -6,13 +6,11 @@ Kafka consumer and producer implementations using springboot and spring-kafka
 
 ```bash
 
-├── kafka-consumer/
-│   ├── src
-│   ├── pox.xml
-│   └── README.md
-├── scripts/
-├── pom.xml
-└── README.md
+└── kafka-consumer/
+       ├── src
+       ├── pox.xml
+       └── README.md
+
 ```
 
 ## App implemented and tested with

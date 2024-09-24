@@ -5,7 +5,7 @@ spring:
   application:
     name: app2-development-prototype-kafka-consumer
   kafka:
-    bootstrap-servers: 192.168.0.30:9093
+    bootstrap-servers: kafka.broker.local:9093
 logging:
   level:
     org:
@@ -15,12 +15,12 @@ logging:
 consumers:
   string_consumer:
     topics: app2.development.prototype.kafka.dev.string.event.v1
-    groupId: app2.development.prototype.kafka-dev-kafka-consumer-group1
+    groupId: app2.development.prototype.kafka-dev-kafka-consumer-group_1
   batch_string_consumer:
     topics: app2.development.prototype.kafka.dev.string.event.v1
-    groupId: app2.development.prototype.kafka-dev-kafka-consumer-group2
+    groupId: app2.development.prototype.kafka-dev-kafka-consumer-group_2
     containerFactory: batchContainerFactory
   message_consumer:
     topics: app2.development.prototype.kafka.dev.message.event.v1
-    groupId: app2.development.prototype.kafka-dev-kafka-consumer-group3
+    groupId: app2.development.prototype.kafka-dev-kafka-consumer-group_3
     containerFactory: messageContainerFactory

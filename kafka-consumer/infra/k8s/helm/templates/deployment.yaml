@@ -33,21 +33,21 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           livenessProbe:
-            failureThreshold: 3
-            httpGet:
-              path: /actuator/health
-              port: {{ .Values.appPort }}
-              scheme: HTTP
+            exec:
+              command: [ "/bin/sh", "-c", "ps -ef | grep '[K]afkaConsumerApplication'"]
             initialDelaySeconds: 180
+            periodSeconds: 10
+            timeoutSeconds: 5
             successThreshold: 1
-          readinessProbe:
             failureThreshold: 3
-            httpGet:
-              path: /actuator/health
-              port: {{ .Values.appPort }}
-              scheme: HTTP
-            initialDelaySeconds: 10
+          readinessProbe:
+            exec:
+              command: [ "/bin/sh", "-c", "ps -ef | grep '[K]afkaConsumerApplication'"]
+            initialDelaySeconds: 180
+            periodSeconds: 10
+            timeoutSeconds: 5
             successThreshold: 1
+            failureThreshold: 3
           securityContext:
             privileged: false
           env:

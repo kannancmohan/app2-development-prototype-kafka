@@ -1,0 +1,63 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ .Release.Name }}
+    version: {{ .Chart.Version }}
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.Version }}
+  name: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicas }}
+  #revisionHistoryLimit: 2 #number of old ReplicaSets (deployments' revisions) to retain
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+      app.kubernetes.io/name: {{ .Release.Name }}
+  template:
+    metadata:
+#      annotations:
+#        prometheus.io/path: /actuator/prometheus
+#        prometheus.io/scrape: "true"
+#        prometheus.io/port: "{{ .Values.appPort }}"
+      labels:
+        app: {{ .Release.Name }}
+        version: {{ .Chart.Version }}
+        app.kubernetes.io/name: {{ .Release.Name }}
+        app.kubernetes.io/version: {{ .Chart.Version }}
+      #name: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Release.Name }}-container
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          livenessProbe:
+            exec:
+              command: [ "/bin/sh", "-c", "ps -ef | grep '[K]afkaConsumerApplication'"]
+            initialDelaySeconds: 180
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command: [ "/bin/sh", "-c", "ps -ef | grep '[K]afkaConsumerApplication'"]
+            initialDelaySeconds: 180
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          securityContext:
+            privileged: false
+          env:
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+      imagePullSecrets:
+        - name: docker-registry-secret

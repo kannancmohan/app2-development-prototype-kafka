@@ -1,0 +1,9 @@
+---
+replicas: 1
+image:
+  repository: kannan2024/app2-development-prototype-kafka-consumer
+  pullPolicy: Always
+  tag: "latest"
+#appPort: 8882
+monitoring:
+  enabled: true

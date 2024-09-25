@@ -9,8 +9,8 @@ spring:
 logging:
   level:
     org:
-      springframework:
-        kafka: WARN
+      springframework.kafka: WARN
+      springframework.kafka.listener.KafkaMessageListenerContainer: DEBUG
 management:
   tracing:
     enabled: true

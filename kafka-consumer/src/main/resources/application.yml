@@ -11,6 +11,20 @@ logging:
     org:
       springframework:
         kafka: WARN
+management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: http://tempo.tempo.svc.cluster.local:4318/v1/traces #tempo grpc endpoint
+    metrics:
+      export:
+        enabled: false # disabling exporting of metrics, as we are already scraping these metrics using prometheus. so exporting is irrelevant here
+  observations:
+    key-values:
+      application: app2-development-prototype-kafka-consumer
 # custom properties
 consumers:
   string_consumer:

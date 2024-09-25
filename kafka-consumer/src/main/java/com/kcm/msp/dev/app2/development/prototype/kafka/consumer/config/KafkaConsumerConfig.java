@@ -41,6 +41,7 @@ public class KafkaConsumerConfig {
     final ConcurrentKafkaListenerContainerFactory<String, String> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(defaultConsumerFactory());
+    factory.getContainerProperties().setObservationEnabled(true);
     return factory;
   }
 
@@ -51,6 +52,7 @@ public class KafkaConsumerConfig {
     factory.setConsumerFactory(batchConsumerFactory());
     factory.setBatchListener(true); // Enable batch mode
     factory.setConcurrency(3); // Optional: sets the number of concurrent threads
+    factory.getContainerProperties().setObservationEnabled(true);
     return factory;
   }
 
@@ -60,6 +62,7 @@ public class KafkaConsumerConfig {
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(messageConsumerFactory());
     factory.setConcurrency(3); // Set concurrency for parallelism
+    factory.getContainerProperties().setObservationEnabled(true);
     factory.getContainerProperties().setAckMode(AckMode.MANUAL); // Use manual acknowledgment
     // factory.getContainerProperties().setAsyncAcks(true); // asynchronously acknowledge msg
     // factory.getContainerProperties().setDeliveryAttemptHeader(true); //include delivery attempt

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} trace_id=%X{trace_id} span_id=%X{span_id} %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="OTEL_STDOUT" class="io.opentelemetry.instrumentation.logback.mdc.v1_0.OpenTelemetryAppender">
+    <appender-ref ref="STDOUT" />
+  </appender>
+  <!--  <springProfile name="dev">
+      <root level="DEBUG">
+        <appender-ref ref="OTEL" />
+      </root>
+    </springProfile>-->
+  <root level="info">
+    <appender-ref ref="OTEL_STDOUT" />
+  </root>
+</configuration>

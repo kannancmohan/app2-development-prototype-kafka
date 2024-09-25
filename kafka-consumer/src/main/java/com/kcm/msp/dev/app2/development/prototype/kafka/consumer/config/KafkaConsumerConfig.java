@@ -40,6 +40,7 @@ public class KafkaConsumerConfig {
   public ConcurrentKafkaListenerContainerFactory<String, String> defaultContainerFactory() {
     final ConcurrentKafkaListenerContainerFactory<String, String> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
+    factory.getContainerProperties().setObservationEnabled(true); // for tracing
     factory.setConsumerFactory(defaultConsumerFactory());
     return factory;
   }
@@ -58,6 +59,7 @@ public class KafkaConsumerConfig {
   public ConcurrentKafkaListenerContainerFactory<String, Message> messageContainerFactory() {
     final ConcurrentKafkaListenerContainerFactory<String, Message> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
+    factory.getContainerProperties().setObservationEnabled(true); // for tracing
     factory.setConsumerFactory(messageConsumerFactory());
     factory.setConcurrency(3); // Set concurrency for parallelism
     factory.getContainerProperties().setAckMode(AckMode.MANUAL); // Use manual acknowledgment

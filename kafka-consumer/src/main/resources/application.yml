@@ -24,7 +24,7 @@ management:
         enabled: false # disabling exporting of metrics, as we are already scraping these metrics using prometheus. so exporting is irrelevant here
   observations:
     key-values:
-      application: app2-development-prototype-kafka-consumer
+      application: ${spring.application.name}
 # custom properties
 consumers:
   string_consumer:
@@ -36,5 +36,5 @@ consumers:
     containerFactory: batchContainerFactory
   message_consumer:
     topics: app2.development.prototype.kafka.dev.message.event.v1
-    groupId: app2.development.prototype.kafka-dev-kafka-consumer-group_32
+    groupId: app2.development.prototype.kafka-dev-kafka-consumer-group_3
     containerFactory: messageContainerFactory

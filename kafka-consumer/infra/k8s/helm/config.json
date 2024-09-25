@@ -1,7 +1,7 @@
 {
   "app": {
-    "enabled": "true",
-    "name": "app2-kafka-consumer2",
+    "enabled": "false",
+    "name": "app2-kafka-consumer",
     "nameSpace": "app2-kafka-consumer",
     "syncWave": "0"
   }

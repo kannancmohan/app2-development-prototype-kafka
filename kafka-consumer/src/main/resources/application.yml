@@ -10,7 +10,7 @@ logging:
   level:
     org:
       springframework.kafka: WARN
-      springframework.kafka.listener.KafkaMessageListenerContainer: DEBUG
+      springframework.kafka.listener.adapter.RecordMessagingMessageListenerAdapter: DEBUG
 management:
   tracing:
     enabled: true
@@ -36,5 +36,5 @@ consumers:
     containerFactory: batchContainerFactory
   message_consumer:
     topics: app2.development.prototype.kafka.dev.message.event.v1
-    groupId: app2.development.prototype.kafka-dev-kafka-consumer-group_3
+    groupId: app2.development.prototype.kafka-dev-kafka-consumer-group_32
     containerFactory: messageContainerFactory

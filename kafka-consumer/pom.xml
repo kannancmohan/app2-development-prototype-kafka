@@ -34,5 +34,12 @@
       <artifactId>opentelemetry-logback-mdc-1.0</artifactId>
       <scope>runtime</scope>
     </dependency>
+    <!-- TEST DEPENDENCIES -->
+    <!-- added for testing observability (tracing)-->
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-sdk-testing</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 </project>

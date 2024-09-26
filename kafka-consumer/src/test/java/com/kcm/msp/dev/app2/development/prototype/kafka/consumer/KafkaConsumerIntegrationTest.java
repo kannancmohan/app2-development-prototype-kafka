@@ -9,6 +9,9 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kcm.msp.dev.app2.development.prototype.kafka.consumer.models.Message;
+import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
+import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,6 +25,7 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.errors.CorruptRecordException;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -30,6 +34,9 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -58,12 +65,30 @@ public class KafkaConsumerIntegrationTest {
 
   @Autowired private EmbeddedKafkaBroker broker;
 
+  @Autowired private InMemorySpanExporter spanExporter;
+
   @Autowired
   private ConcurrentKafkaListenerContainerFactory<String, String> defaultContainerFactory;
 
   @Autowired private ConcurrentKafkaListenerContainerFactory<String, String> batchContainerFactory;
 
   @Autowired CheckRetryAttempts checkRetryAttempts;
+
+  @Profile("test")
+  @TestConfiguration
+  static class TestObservabilityConfig {
+    @Bean // added for tracing test
+    public SdkTracerProvider sdkTracerProvider(InMemorySpanExporter spanExporter) {
+      return SdkTracerProvider.builder()
+          .addSpanProcessor(SimpleSpanProcessor.create(spanExporter))
+          .build();
+    }
+
+    @Bean //// added for tracing test
+    public InMemorySpanExporter spanExporter() {
+      return InMemorySpanExporter.create();
+    }
+  }
 
   @Nested
   @TestInstance(PER_CLASS)
@@ -128,6 +153,11 @@ public class KafkaConsumerIntegrationTest {
       producer = new KafkaProducer<>(producerProperties);
     }
 
+    @BeforeEach
+    void beforeEach() {
+      spanExporter.reset(); // Clear spans before each test
+    }
+
     @Test
     @DisplayName(
         "invalid payload should be handled by error-handler & listener errors should be retried")
@@ -146,6 +176,8 @@ public class KafkaConsumerIntegrationTest {
       payloads.forEach((k, v) -> producer.send(new ProducerRecord<>(CUSTOM_OBJECT_TOPIC, k, v)));
       boolean isExpectedInvocations = checkRetryAttempts.countDown.await(30, TimeUnit.SECONDS);
       final Map<String, Integer> expectedAttempts = checkRetryAttempts.attempts;
+      final var spans = spanExporter.getFinishedSpanItems();
+      assertFalse(spans.isEmpty()); // ensure observability-tracing data is available
       assertAll(
           () -> assertTrue(isExpectedInvocations),
           () -> assertFalse(expectedAttempts.containsKey("key_1")),

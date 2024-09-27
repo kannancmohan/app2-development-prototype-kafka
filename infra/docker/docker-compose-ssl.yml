@@ -39,9 +39,10 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,SSL://${HOST_NAME}:9093
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,SSL:SSL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      ### Debug options ###
+      KAFKA_OPTS: "-Djavax.net.debug=ssl:handshake" #to show SSL handshake info in log
       #KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
-      ## SSL
-      KAFKA_OPTS: "-Djavax.net.debug=ssl:handshake" #SSL handshake information in the logs
+      ### SSL config ###
       KAFKA_SSL_KEYSTORE_FILENAME: keystore.p12
       KAFKA_SSL_KEYSTORE_TYPE: PKCS12
       KAFKA_SSL_KEYSTORE_CREDENTIALS: keystore_pwd1.txt
@@ -50,7 +51,7 @@ services:
       KAFKA_SSL_TRUSTSTORE_TYPE: PKCS12
       KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_pwd1.txt
       KAFKA_SSL_CLIENT_AUTH: 'none'
-      #KAFKA_SSL_CLIENT_AUTH: 'required' #client's needs valid certificate to connect
+      #KAFKA_SSL_CLIENT_AUTH: 'required' #if its set 'required', then client's needs valid certificate to connect this broker
       KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
       ## SEEMS REDUNDANT
       KAFKA_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/keystore.p12

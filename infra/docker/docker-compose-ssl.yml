@@ -1,4 +1,20 @@
-# FOR TESTING PURPOSE ONLY
+# This docker-compose is for TESTING PURPOSE only
+### example client configuration to connect to kafka with ssl and non-auth enabled
+#security.protocol=SSL
+
+## example client configuration to connect to kafka with ssl and auth enabled
+#security.protocol=SSL
+#ssl.truststore.location=/path-to/client.truststore.p12
+#ssl.truststore.password=your-truststore-pwd
+#ssl.truststore.type=PKCS12
+#ssl.keystore.location=/path-to/client.keystore.p12
+#ssl.keystore.password=your-keystore-pwd
+#ssl.keystore.type=PKCS12
+#ssl.key.password=your-keystore-pwd
+#ssl.client.auth=required
+#ssl.endpoint.identification.algorithm=
+
+
 version: '3.8'
 services:
   zookeeper:
@@ -33,7 +49,7 @@ services:
       KAFKA_SSL_TRUSTSTORE_FILENAME: truststore.p12
       KAFKA_SSL_TRUSTSTORE_TYPE: PKCS12
       KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_pwd1.txt
-      KAFKA_SSL_CLIENT_AUTH: 'required'
+      KAFKA_SSL_CLIENT_AUTH: 'none'
       #KAFKA_SSL_CLIENT_AUTH: 'required' #client's needs valid certificate to connect
       KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
       ## SEEMS REDUNDANT

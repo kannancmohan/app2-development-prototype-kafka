@@ -33,7 +33,7 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,SSL:SSL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       ### Debug options ###
-      KAFKA_OPTS: "-Djavax.net.debug=ssl:handshake" #to show SSL handshake info in log
+      #KAFKA_OPTS: "-Djavax.net.debug=ssl:handshake" #to show SSL handshake info in log
       ### SSL config ###
       KAFKA_SSL_KEYSTORE_FILENAME: broker.keystore.p12
       KAFKA_SSL_KEYSTORE_TYPE: PKCS12

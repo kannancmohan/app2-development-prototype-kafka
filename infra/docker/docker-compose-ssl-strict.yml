@@ -9,14 +9,8 @@
 #security.protocol=SSL
 #ssl.truststore.location=/path-to/client.truststore.p12
 #ssl.truststore.password=your-truststore-pwd
-#ssl.truststore.type=PKCS12
 #ssl.keystore.location=/path-to/client.keystore.p12
 #ssl.keystore.password=your-keystore-pwd
-#ssl.keystore.type=PKCS12
-#ssl.key.password=your-keystore-pwd
-#ssl.client.auth=required
-#ssl.endpoint.identification.algorithm=
-
 
 version: '3.8'
 services:

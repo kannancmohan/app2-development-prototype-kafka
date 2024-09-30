@@ -1,4 +1,7 @@
-# FOR TESTING PURPOSE ONLY
+# This docker-compose is for TESTING PURPOSE only
+# docker-compose for kafka broker( no ssl or auth)
+
+
 version: '3.8'
 services:
   zookeeper:

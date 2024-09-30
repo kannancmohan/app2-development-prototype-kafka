@@ -1,0 +1,39 @@
+---
+spring:
+  kafka:
+    bootstrap-servers: kafka.kcmeu.duckdns.org:9093
+    properties:
+      security.protocol: "SSL"
+      ssl.endpoint.identification.algorithm: ""
+    security.protocol: "SSL"
+    ssl:
+      protocol: "SSL"
+      trust-store-location: classpath:/client-certs/app-truststore.p12
+      trust-store-password: ${KAFKA_TRUSTSTORE_PASSWORD:kcmeu@truststore_pwd1}
+      trust-store-type: PKCS12
+      key-store-location: classpath:/client-certs/app-keystore.p12
+      key-store-password: ${KAFKA_KEYSTORE_PASSWORD:kcmeu@keystore_pwd1}
+      key-password: ${KAFKA_KEYSTORE_PASSWORD:kcmeu@keystore_pwd1}
+      key-store-type: PKCS12
+management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: http://tempo.tempo.svc.cluster.local:4318/v1/traces #tempo grpc endpoint
+    metrics:
+      export:
+        enabled: false # disabling exporting of metrics
+  observations:
+    key-values:
+      application: ${spring.application.name}
+# custom properties
+consumers:
+  string_consumer:
+    groupId: app2.development.prototype.kafka-prod-kafka-consumer-group_1
+  batch_string_consumer:
+    groupId: app2.development.prototype.kafka-prod-kafka-consumer-group_2
+  message_consumer:
+    groupId: app2.development.prototype.kafka-prod-kafka-consumer-group_3

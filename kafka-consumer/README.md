@@ -64,6 +64,8 @@ Execute './mvnw spotless:check' to view code style violations and use './mvnw sp
 ../mvnw spring-boot:run
 # [Remote debugging]
 ../mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+# [Run with prod profile]
+../mvnw spring-boot:run -Dspring-boot.run.profiles=prod
 ```
 
 ### Generate and Push Container Image

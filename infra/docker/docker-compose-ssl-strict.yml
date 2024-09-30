@@ -1,7 +1,7 @@
 # docker-compose for kafka broker with ssl enabled and strict ssl check for clients (Client's requires valid keystore.p12 and truststore.p12 to connect)
 
 ### Make sure to set the following variable in .env or as environment variable
-#HOST_NAME=kafka.broker.local
+#HOST_NAME=kafka.kcmeu.duckdns.org
 #SSL_TRUSTSTORE_PASSWORD=your-truststore-pwd
 #SSL_KEYSTORE_PASSWORD=your-keystore-pwd
 

@@ -1,8 +1,11 @@
-# This docker-compose is for TESTING PURPOSE only
-### example client configuration to connect to kafka with ssl and non-auth enabled
-#security.protocol=SSL
+# docker-compose for kafka broker with ssl enabled and strict ssl check for clients (Client's requires valid keystore.p12 and truststore.p12 to connect)
 
-## example client configuration(eg: client-ssl-strict.properties) to connect to kafka with ssl and auth enabled
+### Make sure to set the following variable in .env or as environment variable
+#HOST_NAME=kafka.broker.local
+#SSL_TRUSTSTORE_PASSWORD=your-truststore-pwd
+#SSL_KEYSTORE_PASSWORD=your-keystore-pwd
+
+## Example client configuration(eg: client-ssl-strict.properties) to connect to kafka broker.
 #security.protocol=SSL
 #ssl.truststore.location=/path-to/client.truststore.p12
 #ssl.truststore.password=your-truststore-pwd
@@ -42,19 +45,19 @@ services:
       ### Debug options ###
       KAFKA_OPTS: "-Djavax.net.debug=ssl:handshake" #to show SSL handshake info in log
       ### SSL config ###
-      KAFKA_SSL_KEYSTORE_FILENAME: keystore.p12
+      KAFKA_SSL_KEYSTORE_FILENAME: broker.keystore.p12
       KAFKA_SSL_KEYSTORE_TYPE: PKCS12
       KAFKA_SSL_KEYSTORE_CREDENTIALS: keystore_pwd1.txt
       KAFKA_SSL_KEY_CREDENTIALS: keystore_pwd1.txt
-      KAFKA_SSL_TRUSTSTORE_FILENAME: truststore.p12
+      KAFKA_SSL_TRUSTSTORE_FILENAME: broker.truststore.p12
       KAFKA_SSL_TRUSTSTORE_TYPE: PKCS12
       KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_pwd1.txt
       KAFKA_SSL_CLIENT_AUTH: 'required' #if its set 'required', then client's needs valid certificate to connect this broker
       KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
       ## SEEMS REDUNDANT
-      KAFKA_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/keystore.p12
+      KAFKA_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/broker.keystore.p12
       KAFKA_SSL_KEYSTORE_PASSWORD: ${SSL_KEYSTORE_PASSWORD}
-      KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/truststore.p12
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/broker.truststore.p12
       KAFKA_SSL_TRUSTSTORE_PASSWORD: ${SSL_TRUSTSTORE_PASSWORD}
     volumes:
       - ./secrets:/etc/kafka/secrets:ro  # Ensure this points to the directory with your keystore and truststore

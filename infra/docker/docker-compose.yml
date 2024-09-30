@@ -1,6 +1,7 @@
-# This docker-compose is for TESTING PURPOSE only
 # docker-compose for kafka broker( no ssl or auth)
 
+### Make sure to set the following variable in .env or as environment variable
+#HOST_NAME=kafka.broker.local
 
 version: '3.8'
 services:

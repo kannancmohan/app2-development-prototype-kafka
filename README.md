@@ -104,55 +104,92 @@ kafka-console-producer.sh --bootstrap-server <kafka-server-host>:<9092> --produc
 kafka-console-consumer.sh --bootstrap-server <kafka-server-host>:<9092> --consumer.config kafka.properties --topic <topic-name> --from-beginning --group=<consumer-group-name> 
 ```
 
-## Known child projects
+### Download ca.cert ( letsencrypt in this case)
 
-## [optional]Generating keystore and truststore p12/PKCS12 file from existing certificate.crt, certificate.key and CA.crt
-### To check which ca.cert is been used by domain
+#### To check which ca.cert is been used by domain
+
+```
 openssl s_client -connect vault.kcmeu.duckdns.org:443 -showcerts
+```
 
-### Download CA.cert( letsencrypt in this case)
-go to https://letsencrypt.org/certificates/ 
-Right-click on the desired certificate (e.g., ISRG Root X1 or E5) and choose to save the certificate. 
-Save it with a .crt or .pem extension
+#### Download CA.cert( letsencrypt in this case)
+
+go to https://letsencrypt.org/certificates/ Right-click on the desired certificate (e.g., ISRG Root X1 or E5) and choose to save the certificate. Save it with a .crt or .pem extension
 
 ```
 wget https://letsencrypt.org/certs/2024/e5-cross.pem -O ca.crt
 ```
 
-### Verify the Downloaded CA Certificates
+#### Verify the Downloaded CA Certificates
+
+```
 openssl x509 -in ca.crt -text -noout
+```
 
+### Generate keystore and truststore p12 files for server
 
-## Generate keystore and truststore p12 files for server
-### server keystore
+#### server keystore
+
+```
 openssl pkcs12 -export -in wildcard_.kcmeu.duckdns.org.crt  -inkey wildcard_.kcmeu.duckdns.org.key -certfile ca.crt -name broker.keystore -out broker.keystore.p12 -passout pass:your-keystore-pwd
+```
 
-### [optional] verify broker.keystore.p12 file
+#### (optional) verify broker.keystore.p12 file
+
+```
 openssl pkcs12 -info -in broker.keystore.p12
+```
 
-### server truststore
+#### server truststore
+
+```
 keytool -importcert -alias rootCA -file ca.crt -keystore broker.truststore.p12 -storetype PKCS12  -storepass your-truststore-pwd
+```
 
-### [optional] verify broker.truststore.p12 file
+#### (optional) verify broker.truststore.p12 file
+
+```
 openssl pkcs12 -info -in  broker.truststore.p12
+```
 
-### [optional] verifying a CA Certificate in Keystore/Truststore file
+#### (optional) verifying a CA Certificate in Keystore/Truststore file
+
+```
 openssl pkcs12 -info -in broker.keystore.p12 -nokeys
 openssl pkcs12 -info -in broker.truststore.p12 -nokeys
+```
 
-## Generate truststore p12 and  keystore(if required) for client
-### client keystore
+### Generate truststore p12 and  keystore(if required) for client
+
+#### client keystore
+
+```
 openssl pkcs12 -export -in wildcard_.kcmeu.duckdns.org.crt  -inkey wildcard_.kcmeu.duckdns.org.key -certfile ca.crt -name client.keystore -out client.keystore.p12 -passout pass:your-keystore-pwd
+```
 
-### [optional] verify client.keystore.p12 file
+#### (optional) verify client.keystore.p12 file
+
+```
 openssl pkcs12 -info -in client.keystore.p12
+```
 
-### client truststore
+#### client truststore
+
+```
 keytool -importcert -alias rootCA -file ca.crt -keystore client.truststore.p12 -storetype PKCS12  -storepass your-truststore-pwd
+```
 
-### [optional] verify client.truststore.p12 file
+#### (optional) verify client.truststore.p12 file
+
+```
 openssl pkcs12 -info -in  client.truststore.p12
+```
 
-### [optional] verifying a CA Certificate in client Keystore/Truststore file
+#### (optional) verifying a CA Certificate in client Keystore/Truststore file
+
+```
 openssl pkcs12 -info -in client.keystore.p12 -nokeys
+
 openssl pkcs12 -info -in client.truststore.p12 -nokeys
+```
+

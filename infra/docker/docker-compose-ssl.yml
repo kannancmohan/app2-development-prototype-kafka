@@ -2,7 +2,7 @@
 # docker-compose for kafka broker with ssl enabled and client's need a valid certificate to connect to broker
 
 
-### example client configuration(client-ssl.properties) to connect to kafka with ssl and non-auth enabled
+### example client configuration(eg: client-ssl.properties) to connect to kafka with ssl and non-auth enabled
 #security.protocol=SSL
 
 version: '3.8'

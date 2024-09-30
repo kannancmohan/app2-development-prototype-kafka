@@ -2,7 +2,7 @@
 ### example client configuration to connect to kafka with ssl and non-auth enabled
 #security.protocol=SSL
 
-## example client configuration to connect to kafka with ssl and auth enabled
+## example client configuration(eg: client-ssl-strict.properties) to connect to kafka with ssl and auth enabled
 #security.protocol=SSL
 #ssl.truststore.location=/path-to/client.truststore.p12
 #ssl.truststore.password=your-truststore-pwd
@@ -41,7 +41,6 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       ### Debug options ###
       KAFKA_OPTS: "-Djavax.net.debug=ssl:handshake" #to show SSL handshake info in log
-      #KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
       ### SSL config ###
       KAFKA_SSL_KEYSTORE_FILENAME: keystore.p12
       KAFKA_SSL_KEYSTORE_TYPE: PKCS12
@@ -50,8 +49,7 @@ services:
       KAFKA_SSL_TRUSTSTORE_FILENAME: truststore.p12
       KAFKA_SSL_TRUSTSTORE_TYPE: PKCS12
       KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_pwd1.txt
-      KAFKA_SSL_CLIENT_AUTH: 'none'
-      #KAFKA_SSL_CLIENT_AUTH: 'required' #if its set 'required', then client's needs valid certificate to connect this broker
+      KAFKA_SSL_CLIENT_AUTH: 'required' #if its set 'required', then client's needs valid certificate to connect this broker
       KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
       ## SEEMS REDUNDANT
       KAFKA_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/keystore.p12

@@ -61,11 +61,12 @@ Execute './mvnw spotless:check' to view code style violations and use './mvnw sp
 
 1. download kafka binary from https://kafka.apache.org/downloads
 2. extract the downloaded binary and execute the commands from kafka-binary/bin folder
-3. if you are connecting to a secure kafka instance add a configuration file(kafka.properties) with connect details
+3. if you are connecting to a secure kafka instance add a configuration file(client.properties) with connect details
+    check the sample client*.properties in infra/docker
    eg: Sample configuration file for connecting to kafka server using jaas authentication
 
    ```
-   #bootstarp.servers=<kafka-server-host>:<9092>
+   #bootstarp.servers=<kafka-server-host>:<9093>
    ssl.endpoint.identification.algorithm=https
    security.protocol=SASL_SSL
    sasl.mechanism=PLAIN
@@ -74,24 +75,24 @@ Execute './mvnw spotless:check' to view code style violations and use './mvnw sp
 4. command to list all topics in a kafka server
 
 ```
-kafka-topics.sh --bootstrap-server <kafka-server-host>:<9092> --command-config kafka.properties --list --exclude-internal
+kafka-topics.sh --bootstrap-server <kafka-server-host>:<9093> --command-config client.properties --list --exclude-internal
 ```
 
 5. command to view a topic configuration
 
 ```
-kafka-topics.sh --bootstrap-server <kafka-server-host>:<9092> --command-config kafka.properties --describe --topic <topic-name>
+kafka-topics.sh --bootstrap-server <kafka-server-host>:<9093> --command-config client.properties --describe --topic <topic-name>
 ```
 
 6. command to send data to a topic
 
 ```
-kafka-console-producer.sh --bootstrap-server <kafka-server-host>:<9092> --producer.config kafka.properties --topic <topic-name> 
+kafka-console-producer.sh --bootstrap-server <kafka-server-host>:<9093> --producer.config client.properties --topic <topic-name> 
 ```
 
 7. command to consume data from a topic (from the begining)
 
 ```
-kafka-console-consumer.sh --bootstrap-server <kafka-server-host>:<9092> --consumer.config kafka.properties --topic <topic-name> --from-beginning --group=<consumer-group-name> 
+kafka-console-consumer.sh --bootstrap-server <kafka-server-host>:<9093> --consumer.config client.properties --topic <topic-name> --from-beginning --group=<consumer-group-name> 
 ```
 

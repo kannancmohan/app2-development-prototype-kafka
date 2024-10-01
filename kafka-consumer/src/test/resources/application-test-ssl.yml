@@ -1,0 +1,22 @@
+---
+spring:
+  kafka:
+    security.protocol: "SSL"
+    properties:
+      ssl.endpoint.identification.algorithm: ""
+#    ssl:
+#      key-store-location: classpath:/client-certs/app-keystore.p12
+#      key-store-password: "${KAFKA_KEYSTORE_PASSWORD:test@keystore_pwd1}"
+management:
+  tracing:
+    enabled: false
+consumers:
+  string_consumer:
+    topics: int_test_ssl_string-topic
+    groupId: int_test_ssl_string-topic-consumer-group_1
+  batch_string_consumer:
+    topics: int_test_ssl_string-topic
+    groupId: int_test_ssl_string-topic-batch-consumer-group_2
+  message_consumer:
+    topics: int_test_ssl_message_obj-topic
+    groupId: int_test_ssl_message_obj-topic-consumer-group_3

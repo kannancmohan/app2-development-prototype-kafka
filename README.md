@@ -57,15 +57,6 @@ Execute './mvnw spotless:check' to view code style violations and use './mvnw sp
 
 [Check producer README](kafka-producer/README.md)
 
-## Local kafka broker and kafka-ui
-
-make sure to update the .env file
-
-```
-cd infra/docker
-docker-compose up -d
-```
-
 ## Manually testing kafka consumer and producer with kafka cli
 
 1. download kafka binary from https://kafka.apache.org/downloads
@@ -102,28 +93,6 @@ kafka-console-producer.sh --bootstrap-server <kafka-server-host>:<9092> --produc
 
 ```
 kafka-console-consumer.sh --bootstrap-server <kafka-server-host>:<9092> --consumer.config kafka.properties --topic <topic-name> --from-beginning --group=<consumer-group-name> 
-```
-
-### Download ca.cert ( letsencrypt in this case)
-
-#### To check which ca.cert is been used by domain
-
-```
-openssl s_client -connect vault.kcmeu.duckdns.org:443 -showcerts
-```
-
-#### Download CA.cert( letsencrypt in this case)
-
-go to https://letsencrypt.org/certificates/ Right-click on the desired certificate (e.g., ISRG Root X1 or E5) and choose to save the certificate. Save it with a .crt or .pem extension
-
-```
-wget https://letsencrypt.org/certs/2024/e5-cross.pem -O ca.crt
-```
-
-#### Verify the Downloaded CA Certificates
-
-```
-openssl x509 -in ca.crt -text -noout
 ```
 
 ### Generate keystore and truststore p12 files for server

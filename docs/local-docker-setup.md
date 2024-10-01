@@ -20,9 +20,4 @@ HOST_NAME= kafka.kcmeu.duckdns.org
    SSL_KEYSTORE_PASSWORD=your-keystore-pwd
    ```
 3. keystore and truststore certificates
-4. test
 
-   ```
-   cd infra/docker
-   docker-compose up -d
-   ```

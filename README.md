@@ -62,7 +62,7 @@ Execute './mvnw spotless:check' to view code style violations and use './mvnw sp
 1. download kafka binary from https://kafka.apache.org/downloads
 2. extract the downloaded binary and execute the commands from kafka-binary/bin folder
 3. if you are connecting to a secure kafka instance add a configuration file(client.properties) with connect details
-    check the sample client*.properties in infra/docker
+   check the sample client*.properties in infra/docker
    eg: Sample configuration file for connecting to kafka server using jaas authentication
 
    ```

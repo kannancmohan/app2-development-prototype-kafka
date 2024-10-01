@@ -41,11 +41,11 @@ import org.springframework.test.context.junit.jupiter.DisabledIf;
           + ",SSL://:"
           + KafkaSSLIntegrationTest.BROKER_SSL_PORT,
       // "advertised.listeners=PLAINTEXT://localhost:19092,SSL://localhost:19093",
-      "ssl.keystore.location=src/test/resources/self-signed-certs/app-keystore.p12",
-      "ssl.keystore.password=" + KafkaSSLIntegrationTest.SERVER_KEYSTORE_PWD,
+      "ssl.keystore.location="+ KafkaSSLIntegrationTest.BROKER_KEYSTORE_LOCATION,
+      "ssl.keystore.password=" + KafkaSSLIntegrationTest.BROKER_KEYSTORE_PWD,
       // "ssl.key.password=" + KafkaSSLIntegrationTest.SERVER_KEYSTORE_PWD,
-      "ssl.truststore.location=src/test/resources/self-signed-certs/app-truststore.p12",
-      "ssl.truststore.password=" + KafkaSSLIntegrationTest.SERVER_TRUSTSTORE_PWD,
+      "ssl.truststore.location="+ KafkaSSLIntegrationTest.BROKER_TRUSTSTORE_LOCATION,
+      "ssl.truststore.password=" + KafkaSSLIntegrationTest.BROKER_TRUSTSTORE_PWD,
       "ssl.client.auth=none",
       "ssl.endpoint.identification.algorithm="
     },
@@ -54,8 +54,14 @@ public class KafkaSSLIntegrationTest {
 
   public static final String BROKER_PORT = "19092";
   public static final String BROKER_SSL_PORT = "19093";
-  public static final String SERVER_KEYSTORE_PWD = "test@keystore_pwd1";
-  public static final String SERVER_TRUSTSTORE_PWD = "test@truststore_pwd1";
+
+  public static final String BROKER_KEYSTORE_LOCATION =
+      "src/test/resources/self-signed-certs/app-keystore.p12";
+  public static final String BROKER_KEYSTORE_PWD = "test@keystore_pwd1";
+
+  public static final String BROKER_TRUSTSTORE_LOCATION =
+      "src/test/resources/self-signed-certs/app-truststore.p12";
+  public static final String BROKER_TRUSTSTORE_PWD = "test@truststore_pwd1";
 
   public static final String STRING_TOPIC = "int_test_ssl_string-topic";
   public static final String MESSAGE_TOPIC = "int_test_ssl_message_obj-topic";

@@ -2,8 +2,6 @@
 
 ### Make sure to set the following variable in .env or as environment variable
 #HOST_NAME=kafka.kcmeu.duckdns.org
-#SSL_TRUSTSTORE_PASSWORD=your-truststore-pwd
-#SSL_KEYSTORE_PASSWORD=your-keystore-pwd
 
 ## Example client configuration(eg: client-ssl-strict.properties) to connect to kafka broker.
 #security.protocol=SSL
@@ -48,11 +46,9 @@ services:
       KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_pwd1.txt
       KAFKA_SSL_CLIENT_AUTH: 'required' #if its set 'required', then client's needs valid certificate to connect this broker
       KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
-      ## SEEMS REDUNDANT
-      KAFKA_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/broker.keystore.p12
-      KAFKA_SSL_KEYSTORE_PASSWORD: ${SSL_KEYSTORE_PASSWORD}
-      KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/broker.truststore.p12
-      KAFKA_SSL_TRUSTSTORE_PASSWORD: ${SSL_TRUSTSTORE_PASSWORD}
+      ## SEEMS REDUNDANT - if not set, inter broker communication is failing
+      #KAFKA_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/broker.keystore.p12
+      #KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/broker.truststore.p12
     volumes:
       - ./secrets:/etc/kafka/secrets:ro  # Ensure this points to the directory with your keystore and truststore
 

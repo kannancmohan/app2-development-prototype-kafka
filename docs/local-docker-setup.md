@@ -30,9 +30,13 @@ docker-compose up -d
 HOST_NAME=kafka.kcmeu.duckdns.org
 ```
 
-3. keystore and truststore files and its passwords
+3. If not exists, generate broker's keystore, truststore files and its password
 
 For generating kafka broker keystore.p12 and truststore.p12 check keystore-truststore.md
+
+4. Include keystore, truststore and password file in /secrets
+
+files to include are broker.keystore.p12, broker.truststore.p12, keystore_pwd1.txt and truststore_pwd1.txt
 
 #### To start kafka broker with ssl (connecting client doesn't need valid ssl cert to connect)
 

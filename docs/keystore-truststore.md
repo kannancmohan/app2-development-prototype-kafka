@@ -27,7 +27,7 @@ Here the assumption is that you already have your your-domain.crt, your-domain.k
       2.1 command to generate keystore 
 
       ```
-      openssl pkcs12 -export -in wildcard_.kcmeu.duckdns.org.crt  -inkey wildcard_.kcmeu.duckdns.org.key -certfile ca.crt -name broker.keystore -out broker.keystore.p12 -passout pass:your-keystore-pwd
+      openssl pkcs12 -export -in your-domain.crt  -inkey your-domain.key -certfile ca.crt -name broker.keystore -out broker.keystore.p12 -passout pass:your-keystore-pwd
       ```
 
       2.2 optional: verify broker.keystore.p12 file
@@ -65,7 +65,7 @@ use the same steps mentioned in broker for generating keystore and truststore fo
     1.1 command to generate keystore
 
       ```
-      openssl pkcs12 -export -in wildcard_.kcmeu.duckdns.org.crt  -inkey wildcard_.kcmeu.duckdns.org.key -certfile ca.crt -name client.keystore -out client.keystore.p12 -passout pass:your-keystore-pwd
+      openssl pkcs12 -export -in your-domain.crt  -inkey your-domain.key -certfile ca.crt -name client.keystore -out client.keystore.p12 -passout pass:your-keystore-pwd
       ```
 
     1.2 optional: verify client.keystore.p12 file

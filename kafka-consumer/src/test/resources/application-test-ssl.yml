@@ -4,9 +4,12 @@ spring:
     security.protocol: "SSL"
     properties:
       ssl.endpoint.identification.algorithm: ""
-#    ssl:
-#      key-store-location: classpath:/client-certs/app-keystore.p12
-#      key-store-password: "${KAFKA_KEYSTORE_PASSWORD:test@keystore_pwd1}"
+      ssl.client.auth: required
+    ssl:
+      key-store-location: classpath:/self-signed-certs/client-keystore.p12
+      key-store-password: "test@test.com"
+      trust-store-location: classpath:self-signed-certs/client-truststore.p12
+      trust-store-password: "test@test.com"
 management:
   tracing:
     enabled: false

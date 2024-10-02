@@ -13,18 +13,7 @@ logging:
       springframework.kafka.listener.adapter.RecordMessagingMessageListenerAdapter: DEBUG
 management:
   tracing:
-    enabled: true
-    sampling:
-      probability: 1.0
-  otlp:
-    tracing:
-      endpoint: http://tempo.tempo.svc.cluster.local:4318/v1/traces #tempo grpc endpoint
-    metrics:
-      export:
-        enabled: false # disabling exporting of metrics
-  observations:
-    key-values:
-      application: ${spring.application.name}
+    enabled: false
 # custom properties
 consumers:
   string_consumer:

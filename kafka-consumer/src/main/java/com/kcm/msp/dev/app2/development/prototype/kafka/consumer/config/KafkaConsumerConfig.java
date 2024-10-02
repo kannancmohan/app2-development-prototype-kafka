@@ -8,10 +8,14 @@ import com.kcm.msp.dev.app2.development.prototype.kafka.consumer.models.Message;
 import com.kcm.msp.dev.app2.development.prototype.kafka.consumer.properties.KafkaProperty;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.errors.RecordDeserializationException;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
+import org.springframework.boot.ssl.SslBundles;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
@@ -37,30 +41,36 @@ public class KafkaConsumerConfig {
   private final KafkaProperty kafkaProperty;
 
   @Bean // for consuming string message
-  public ConcurrentKafkaListenerContainerFactory<String, String> defaultContainerFactory() {
+  public ConcurrentKafkaListenerContainerFactory<String, String> defaultContainerFactory(
+      final ConsumerFactory<String, String> defaultConsumerFactory) {
+    Objects.requireNonNull(defaultConsumerFactory, "DefaultConsumerFactory cannot be null");
     final ConcurrentKafkaListenerContainerFactory<String, String> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.getContainerProperties().setObservationEnabled(true); // for tracing
-    factory.setConsumerFactory(defaultConsumerFactory());
+    factory.setConsumerFactory(defaultConsumerFactory);
     return factory;
   }
 
   @Bean // for batch consuming string messages
-  public ConcurrentKafkaListenerContainerFactory<String, String> batchContainerFactory() {
+  public ConcurrentKafkaListenerContainerFactory<String, String> batchContainerFactory(
+      final ConsumerFactory<String, String> batchConsumerFactory) {
+    Objects.requireNonNull(batchConsumerFactory, "BatchConsumerFactory cannot be null");
     final ConcurrentKafkaListenerContainerFactory<String, String> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
-    factory.setConsumerFactory(batchConsumerFactory());
+    factory.setConsumerFactory(batchConsumerFactory);
     factory.setBatchListener(true); // Enable batch mode
     factory.setConcurrency(3); // Optional: sets the number of concurrent threads
     return factory;
   }
 
   @Bean // for consuming Message object. Its configured to skips deserialization failures
-  public ConcurrentKafkaListenerContainerFactory<String, Message> messageContainerFactory() {
+  public ConcurrentKafkaListenerContainerFactory<String, Message> messageContainerFactory(
+      final ConsumerFactory<String, Message> messageConsumerFactory) {
+    Objects.requireNonNull(messageConsumerFactory, "MessageConsumerFactory cannot be null");
     final ConcurrentKafkaListenerContainerFactory<String, Message> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.getContainerProperties().setObservationEnabled(true); // for tracing
-    factory.setConsumerFactory(messageConsumerFactory());
+    factory.setConsumerFactory(messageConsumerFactory);
     factory.setConcurrency(3); // Set concurrency for parallelism
     factory.getContainerProperties().setAckMode(AckMode.MANUAL); // Use manual acknowledgment
     // factory.getContainerProperties().setAsyncAcks(true); // asynchronously acknowledge msg
@@ -69,8 +79,11 @@ public class KafkaConsumerConfig {
     return factory;
   }
 
-  private ConsumerFactory<String, String> defaultConsumerFactory() {
-    final Map<String, Object> props = new HashMap<>();
+  @Bean
+  public ConsumerFactory<String, String> defaultConsumerFactory(
+      final KafkaProperties kafkaProperties, final ObjectProvider<SslBundles> sslBundles) {
+    final Map<String, Object> props =
+        new HashMap<>(kafkaProperties.buildConsumerProperties(sslBundles.getIfAvailable()));
     props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaProperty.getBootstrapServers());
     props.put(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
     props.put(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
@@ -80,8 +93,26 @@ public class KafkaConsumerConfig {
     return new DefaultKafkaConsumerFactory<>(props);
   }
 
-  private ConsumerFactory<String, Message> messageConsumerFactory() {
-    final Map<String, Object> props = new HashMap<>();
+  @Bean
+  public ConsumerFactory<String, String> batchConsumerFactory(
+      final KafkaProperties kafkaProperties, final ObjectProvider<SslBundles> sslBundles) {
+    Map<String, Object> props =
+        new HashMap<>(kafkaProperties.buildConsumerProperties(sslBundles.getIfAvailable()));
+    props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaProperty.getBootstrapServers());
+    props.put(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(ENABLE_AUTO_COMMIT_CONFIG, false); // Disable auto-commit for better control
+    props.put(MAX_POLL_RECORDS_CONFIG, 100); // Max number of records per batch
+    props.put(FETCH_MIN_BYTES_CONFIG, 1024); // Minimum data to fetch in bytes
+    props.put(FETCH_MAX_WAIT_MS_CONFIG, 5000); // Max wait time if data is less than FETCH_MIN_BYTES
+    return new DefaultKafkaConsumerFactory<>(props);
+  }
+
+  @Bean
+  public ConsumerFactory<String, Message> messageConsumerFactory(
+      final KafkaProperties kafkaProperties, final ObjectProvider<SslBundles> sslBundles) {
+    final Map<String, Object> props =
+        new HashMap<>(kafkaProperties.buildConsumerProperties(sslBundles.getIfAvailable()));
     props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaProperty.getBootstrapServers());
     // Disable auto commit. make sure its manually done after message is successfully processed
     props.put(ENABLE_AUTO_COMMIT_CONFIG, false);
@@ -105,18 +136,6 @@ public class KafkaConsumerConfig {
           return null; // could also provide a default value or custom error
         });
     return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), valueDeserializer);
-  }
-
-  private ConsumerFactory<String, String> batchConsumerFactory() {
-    Map<String, Object> props = new HashMap<>();
-    props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaProperty.getBootstrapServers());
-    props.put(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-    props.put(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-    props.put(ENABLE_AUTO_COMMIT_CONFIG, false); // Disable auto-commit for better control
-    props.put(MAX_POLL_RECORDS_CONFIG, 100); // Max number of records per batch
-    props.put(FETCH_MIN_BYTES_CONFIG, 1024); // Minimum data to fetch in bytes
-    props.put(FETCH_MAX_WAIT_MS_CONFIG, 5000); // Max wait time if data is less than FETCH_MIN_BYTES
-    return new DefaultKafkaConsumerFactory<>(props);
   }
 
   // An error handler that delegates to different error handlers, depending on the exception type

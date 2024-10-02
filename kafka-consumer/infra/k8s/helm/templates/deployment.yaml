@@ -51,6 +51,8 @@ spec:
           securityContext:
             privileged: false
           env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod" # This sets the 'prod' profile
             - name: KUBERNETES_NAMESPACE
               valueFrom:
                 fieldRef:
@@ -59,5 +61,13 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+#          volumeMounts:
+#            - name: secret-volume
+#              readOnly: true
+#              mountPath: "/etc/kafka/secrets"
       imagePullSecrets:
         - name: docker-registry-secret
+#      volumes:
+#        - name: secret-volume
+#          secret:
+#            secretName: kafka-client-ssl-secret

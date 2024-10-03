@@ -56,16 +56,18 @@ services:
       ### Enable SASL and OAUTHBEARER for the SASL_SSL listener ###
       KAFKA_SASL_ENABLED_MECHANISMS: OAUTHBEARER
       KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
-      KAFKA_LISTENER_NAME_SASL_SSL_SASL_ENABLED_MECHANISMS: PLAIN, OAUTHBEARER
+      KAFKA_LISTENER_NAME_SASL_SSL_SASL_ENABLED_MECHANISMS: OAUTHBEARER
+      KAFKA_LISTENER_NAME_SASL_SSL_SASL_OAUTHBEARER_JWKS_ENDPOINT_URL: http://zitadel.dev.local/oauth/v2/keys
       KAFKA_LISTENER_NAME_SASL_SSL_OAUTHBEARER_SASL_SERVER_CALLBACK_HANDLER_CLASS: org.apache.kafka.common.security.oauthbearer.OAuthBearerValidatorCallbackHandler
+      KAFKA_LISTENER_NAME_SASL_SSL_SASL_OAUTHBEARER_EXPECTED_AUDIENCE: 287639842542584140
       ZOOKEEPER_SASL_ENABLED: "false"
       KAFKA_OPTS:
         -Djava.security.auth.login.config=/etc/kafka/sasl/kafka_server_jaas.conf
       #KAFKA_LISTENER_NAME_SASL_SSL_OAUTHBEARER_SASL_JAAS_CONFIG: "org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required;"
       ## JWKS URL for JWT validation (use 'http://<keycloak-host>/realms/<your-realm>/protocol/openid-connect/certs' for keycloak )
-      KAFKA_SASL_OAUTHBEARER_JWKS_ENDPOINT_URL: http://zitadel.dev.local/oauth/v2/keys
+      #KAFKA_SASL_OAUTHBEARER_JWKS_ENDPOINT_URL: http://zitadel.dev.local/oauth/v2/keys
       ## Valid issuer and audience for the JWT tokens
-      KAFKA_SASL_OAUTHBEARER_EXPECTED_AUDIENCE: 287639842542584140 # the bearer token is checked for claim aud="kafka-client"
+      #KAFKA_SASL_OAUTHBEARER_EXPECTED_AUDIENCE: 287639842542584140 # the bearer token is checked for claim aud="kafka-client"
       #KAFKA_SASL_OAUTHBEARER_SCOPE_CLAIM: scope # Specify the claim that contains the scopes in the token.
       #KAFKA_SASL_OAUTHBEARER_SCOPE_CLAIM_NAME: "email profile" # verify scope claim value
       #KAFKA_SASL_OAUTHBEARER_VALID_ISSUER_URI: http://zitadel.dev.local

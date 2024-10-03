@@ -22,7 +22,7 @@ services:
       - zookeeper
     ports:
       - 9092:9092
-      - 9093:9093 # SASL_SSL listener
+      - 9093:9093
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -48,7 +48,7 @@ services:
 #      KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/broker.truststore.p12
 #      KAFKA_SSL_TRUSTSTORE_PASSWORD: ${SSL_TRUSTSTORE_PASSWORD}
     volumes:
-      - ./secrets:/etc/kafka/secrets:ro  # Ensure this points to the directory with your keystore and truststore
+      - ./docker_volume/kafka/ssl_secrets:/etc/kafka/secrets:ro  # Ensure this points to the directory with your keystore and truststore
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest

@@ -60,7 +60,6 @@ services:
       KAFKA_LISTENER_NAME_SASL_SSL_OAUTHBEARER_SASL_SERVER_CALLBACK_HANDLER_CLASS: org.apache.kafka.common.security.oauthbearer.OAuthBearerValidatorCallbackHandler
       ZOOKEEPER_SASL_ENABLED: "false"
       KAFKA_OPTS:
-        -Dzookeeper.sasl.client=false
         -Djava.security.auth.login.config=/etc/kafka/sasl/kafka_server_jaas.conf
       #KAFKA_LISTENER_NAME_SASL_SSL_OAUTHBEARER_SASL_JAAS_CONFIG: "org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required;"
       ## JWKS URL for JWT validation (use 'http://<keycloak-host>/realms/<your-realm>/protocol/openid-connect/certs' for keycloak )

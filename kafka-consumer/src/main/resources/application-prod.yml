@@ -4,8 +4,8 @@ spring:
     bootstrap-servers: kafka.kcmeu.duckdns.org:9093
     security.protocol: "SASL_SSL"
     ssl:
-#      trust-store-location: classpath:/client-certs/app-truststore.p12
-#      trust-store-password: "${KAFKA_TRUSTSTORE_PASSWORD:your-truststore-pwd}"
+      trust-store-location: classpath:/client-certs/app-truststore.p12
+      trust-store-password: "${KAFKA_TRUSTSTORE_PASSWORD:your-truststore-pwd}"
       key-store-location: classpath:/client-certs/app-keystore.p12
       key-store-password: "${KAFKA_KEYSTORE_PASSWORD:your-keystore-pwd}"
     properties:

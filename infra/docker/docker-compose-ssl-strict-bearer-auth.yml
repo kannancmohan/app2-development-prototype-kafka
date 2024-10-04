@@ -37,7 +37,7 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       ### Debug options ###
       #KAFKA_OPTS: "-Djavax.net.debug=ssl:handshake" #to show SSL handshake info in log
-      KAFKA_LOG4J_LOGGERS: "org.apache.kafka.common.security.oauthbearer=DEBUG,org.apache.kafka.common.network.SaslChannelBuilder=DEBUG,org.apache.kafka.common.security.authenticator=DEBUG,org.apache.kafka.common.security.auth=DEBUG"
+      KAFKA_LOG4J_LOGGERS: "org.apache.kafka.common.security=TRACE,org.apache.kafka.common.network.SaslChannelBuilder=DEBUG"
 
       ### SSL config ###
       KAFKA_SSL_KEYSTORE_FILENAME: broker.keystore.p12

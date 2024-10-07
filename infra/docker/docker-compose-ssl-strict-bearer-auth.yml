@@ -27,17 +27,20 @@ services:
     ports:
       - 9092:9092
       - 9093:9093
+      - 5005:5005
+    dns:
+      - 192.168.0.21 # optional
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENERS: PLAINTEXT://:9092,SASL_SSL://:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,SASL_SSL://${HOST_NAME}:9093
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,SASL_SSL:SASL_SSL
+      KAFKA_LISTENERS: INTERNAL://:9092,EXTERNAL://:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://${HOST_NAME}:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:SASL_SSL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       ### Debug options ###
       #KAFKA_OPTS: "-Djavax.net.debug=ssl:handshake" #to show SSL handshake info in log
-      KAFKA_LOG4J_LOGGERS: "org.apache.kafka.common.security=TRACE,org.apache.kafka.common.network.SaslChannelBuilder=DEBUG"
+      KAFKA_LOG4J_LOGGERS: "org.apache.kafka.common.security=DEBUG,org.apache.kafka.common.network.SaslChannelBuilder=DEBUG"
 
       ### SSL config ###
       KAFKA_SSL_KEYSTORE_FILENAME: broker.keystore.p12
@@ -53,19 +56,25 @@ services:
       #KAFKA_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/broker.keystore.p12
       #KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/broker.truststore.p12
 
-      ### Enable SASL and OAUTHBEARER for the SASL_SSL listener ###
-      KAFKA_SASL_ENABLED_MECHANISMS: OAUTHBEARER
+      ### Enable SASL and OAUTHBEARER for the EXTERNAL listener ###
+      KAFKA_SASL_ENABLED_MECHANISMS: PLAIN, OAUTHBEARER
       KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
-      KAFKA_LISTENER_NAME_SASL_SSL_SASL_ENABLED_MECHANISMS: OAUTHBEARER
-      KAFKA_LISTENER_NAME_SASL_SSL_SASL_OAUTHBEARER_JWKS_ENDPOINT_URL: https://zitadel.dev.local/oauth/v2/keys
-      KAFKA_LISTENER_NAME_SASL_SSL_OAUTHBEARER_SASL_SERVER_CALLBACK_HANDLER_CLASS: org.apache.kafka.common.security.oauthbearer.OAuthBearerValidatorCallbackHandler
+      #KAFKA_SASL_OAUTHBEARER_TOKEN_ENDPOINT_URL: ""
+      KAFKA_LISTENER_NAME_EXTERNAL_SASL_ENABLED_MECHANISMS: OAUTHBEARER
+      KAFKA_LISTENER_NAME_EXTERNAL_SASL_OAUTHBEARER_JWKS_ENDPOINT_URL: http://zitadel.dev.local/oauth/v2/keys
+      KAFKA_LISTENER_NAME_EXTERNAL_SASL_OAUTHBEARER_VALID_ISSUER_URI: http://zitadel.dev.local
+      KAFKA_LISTENER_NAME_EXTERNAL_OAUTHBEARER_SASL_SERVER_CALLBACK_HANDLER_CLASS: org.apache.kafka.common.security.oauthbearer.OAuthBearerValidatorCallbackHandler
+      KAFKA_SASL_OAUTHBEARER_SUB_CLAIM_NAME: "sub" # optional: Set claim name for scope (default is sub)
+      #KAFKA_SASL_OAUTHBEARER_SCOPE_CLAIM_NAME: "" # optional: Set claim name for subject (default is scope)
       ## validate expected value in token
-      KAFKA_LISTENER_NAME_SASL_SSL_SASL_OAUTHBEARER_EXPECTED_AUDIENCE: kafka-consumer1
-      KAFKA_LISTENER_NAME_SASL_SSL_SASL_OAUTHBEARER_EXPECTED_ISSUER: http://zitadel.dev.local # optional
+      KAFKA_LISTENER_NAME_EXTERNAL_SASL_OAUTHBEARER_EXPECTED_AUDIENCE: kafka-consumer1
+      #KAFKA_LISTENER_NAME_EXTERNAL_SASL_OAUTHBEARER_EXPECTED_ISSUER: http://zitadel.dev.local # optional
+
       ZOOKEEPER_SASL_ENABLED: "false"
       KAFKA_OPTS:
         -Djava.security.auth.login.config=/etc/kafka/sasl/kafka_server_jaas.conf
-      #KAFKA_LISTENER_NAME_SASL_SSL_OAUTHBEARER_SASL_JAAS_CONFIG: "org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required;"
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      #KAFKA_LISTENER_NAME_EXTERNAL_OAUTHBEARER_SASL_JAAS_CONFIG: "org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required;"
       ## JWKS URL for JWT validation (use 'http://<keycloak-host>/realms/<your-realm>/protocol/openid-connect/certs' for keycloak )
       #KAFKA_SASL_OAUTHBEARER_JWKS_ENDPOINT_URL: http://zitadel.dev.local/oauth/v2/keys
       ## Valid issuer and audience for the JWT tokens

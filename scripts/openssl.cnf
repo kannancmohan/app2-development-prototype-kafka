@@ -1,0 +1,22 @@
+[ req ]
+distinguished_name = req_distinguished_name
+req_extensions = v3_req  # Extensions for CSR
+
+[ req_distinguished_name ]
+# Fields for your Distinguished Name
+C = US
+ST = State
+L = City
+O = MyCompany
+OU = OrganizationalUnit
+CN = CommonName
+
+[ v3_req ]
+# Extensions for SAN (Subject Alternative Name)
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = localhost
+DNS.2 = kafka.broker.dev.local
+IP.1 = 192.168.0.30
+IP.2 = 127.0.0.1

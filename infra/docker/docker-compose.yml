@@ -1,19 +1,19 @@
 # docker-compose for kafka broker( no ssl or auth)
 
 ### Make sure to set the following variable in .env or as environment variable
-#HOST_NAME=kafka.kcmeu.duckdns.org
+#HOST_NAME=kafka.broker.dev.local
 
 version: '3.8'
 services:
   zookeeper:
-    image: confluentinc/cp-zookeeper:latest
+    image: confluentinc/cp-zookeeper:7.7.1
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - 2181:2181
   kafka:
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:7.7.1
     depends_on:
       - zookeeper
     ports:

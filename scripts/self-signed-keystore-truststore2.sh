@@ -135,6 +135,7 @@ keytool -importcert \
   -file "$ca_cert" \
   -keystore "$server_truststore_file" \
   -storepass "$password" \
+  -storetype PKCS12 \
   -noprompt
 
 if [ $? -ne 0 ]; then
@@ -149,6 +150,7 @@ keytool -importcert \
   -file "$ca_cert" \
   -keystore "$client_truststore_file" \
   -storepass "$password" \
+  -storetype PKCS12 \
   -noprompt
 
 if [ $? -ne 0 ]; then

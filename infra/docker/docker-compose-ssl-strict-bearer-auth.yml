@@ -1,7 +1,7 @@
 # docker-compose for kafka broker with ssl enabled, strict ssl check and oauth-bearer authentication
 
 ### Make sure to set the following variable in .env or as environment variable
-#HOST_NAME=kafka.kcmeu.duckdns.org
+#HOST_NAME=kafka.broker.dev.local
 
 ## Example client configuration(eg: client-ssl-strict.properties) to connect to kafka broker.
 #security.protocol=SSL
@@ -43,6 +43,8 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka.common.security=DEBUG,org.apache.kafka.common.network.SaslChannelBuilder=DEBUG"
 
       ### SSL config ###
+      #KAFKA_SSL_CIPHER_SUITES: ${SSL_CIPHER_SUITES}
+      #KAFKA_CONFLUENT_METADATA_SERVER_TOKEN_SIGNATURE_ALGORITHM: RS256
       KAFKA_SSL_KEYSTORE_FILENAME: broker.keystore.p12
       KAFKA_SSL_KEYSTORE_TYPE: PKCS12
       KAFKA_SSL_KEYSTORE_CREDENTIALS: keystore_pwd1.txt
@@ -50,38 +52,24 @@ services:
       KAFKA_SSL_TRUSTSTORE_FILENAME: broker.truststore.p12
       KAFKA_SSL_TRUSTSTORE_TYPE: PKCS12
       KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_pwd1.txt
-      KAFKA_SSL_CLIENT_AUTH: 'required' #if its set 'required', then client's needs valid certificate to connect this broker
+      KAFKA_SSL_CLIENT_AUTH: 'none' #if its set 'required', then client's needs valid certificate to connect this broker
       KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
       ## SEEMS REDUNDANT - if not set, inter broker communication is failing
       #KAFKA_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/broker.keystore.p12
       #KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/broker.truststore.p12
 
       ### Enable SASL and OAUTHBEARER for the EXTERNAL listener ###
-      KAFKA_SASL_ENABLED_MECHANISMS: PLAIN, OAUTHBEARER
-      KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
-      #KAFKA_SASL_OAUTHBEARER_TOKEN_ENDPOINT_URL: ""
       KAFKA_LISTENER_NAME_EXTERNAL_SASL_ENABLED_MECHANISMS: OAUTHBEARER
-      KAFKA_LISTENER_NAME_EXTERNAL_SASL_OAUTHBEARER_JWKS_ENDPOINT_URL: http://zitadel.dev.local/oauth/v2/keys
-      KAFKA_LISTENER_NAME_EXTERNAL_SASL_OAUTHBEARER_VALID_ISSUER_URI: http://zitadel.dev.local
-      KAFKA_LISTENER_NAME_EXTERNAL_OAUTHBEARER_SASL_SERVER_CALLBACK_HANDLER_CLASS: org.apache.kafka.common.security.oauthbearer.OAuthBearerValidatorCallbackHandler
-      KAFKA_SASL_OAUTHBEARER_SUB_CLAIM_NAME: "sub" # optional: Set claim name for scope (default is sub)
+      KAFKA_LISTENER_NAME_EXTERNAL_SASL_OAUTHBEARER_JWKS_ENDPOINT_URL: http://192.168.0.30:8666/realms/homelab/protocol/openid-connect/certs
+      KAFKA_LISTENER_NAME_EXTERNAL_OAUTHBEARER_SASL_SERVER_CALLBACK_HANDLER_CLASS: org.apache.kafka.common.security.oauthbearer.secured.OAuthBearerValidatorCallbackHandler
+      #KAFKA_SASL_OAUTHBEARER_SUB_CLAIM_NAME: "sub" # optional: Set claim name for scope (default is sub)
       #KAFKA_SASL_OAUTHBEARER_SCOPE_CLAIM_NAME: "" # optional: Set claim name for subject (default is scope)
-      ## validate expected value in token
-      KAFKA_LISTENER_NAME_EXTERNAL_SASL_OAUTHBEARER_EXPECTED_AUDIENCE: kafka-consumer1
+      KAFKA_LISTENER_NAME_EXTERNAL_SASL_OAUTHBEARER_EXPECTED_AUDIENCE: account
       #KAFKA_LISTENER_NAME_EXTERNAL_SASL_OAUTHBEARER_EXPECTED_ISSUER: http://zitadel.dev.local # optional
-
-      ZOOKEEPER_SASL_ENABLED: "false"
+      KAFKA_LISTENER_NAME_EXTERNAL_OAUTHBEARER_SASL_JAAS_CONFIG: "org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required;"
       KAFKA_OPTS:
-        -Djava.security.auth.login.config=/etc/kafka/sasl/kafka_server_jaas.conf
         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-      #KAFKA_LISTENER_NAME_EXTERNAL_OAUTHBEARER_SASL_JAAS_CONFIG: "org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required;"
-      ## JWKS URL for JWT validation (use 'http://<keycloak-host>/realms/<your-realm>/protocol/openid-connect/certs' for keycloak )
-      #KAFKA_SASL_OAUTHBEARER_JWKS_ENDPOINT_URL: http://zitadel.dev.local/oauth/v2/keys
-      ## Valid issuer and audience for the JWT tokens
-      #KAFKA_SASL_OAUTHBEARER_EXPECTED_AUDIENCE: 287639842542584140 # the bearer token is checked for claim aud="kafka-client"
-      #KAFKA_SASL_OAUTHBEARER_SCOPE_CLAIM: scope # Specify the claim that contains the scopes in the token.
-      #KAFKA_SASL_OAUTHBEARER_SCOPE_CLAIM_NAME: "email profile" # verify scope claim value
-      #KAFKA_SASL_OAUTHBEARER_VALID_ISSUER_URI: http://zitadel.dev.local
+        -Djavax.net.debug=ssl:handshake
 
     volumes:
       - ./docker_volume/kafka/ssl_secrets:/etc/kafka/secrets:ro  # Ensure this points to the directory with your keystore and truststore

@@ -9,7 +9,7 @@
 #broker.keystore.p12
 #broker.truststore.p12
 
-## Example client configuration(eg: client-ssl-strict.properties) to connect to kafka broker.
+## Example client configuration(eg: client-with-strict-ssl.properties) to connect to kafka broker.
 #security.protocol=SSL
 #ssl.truststore.location=/path-to/client.truststore.p12
 #ssl.truststore.password=your-truststore-pwd

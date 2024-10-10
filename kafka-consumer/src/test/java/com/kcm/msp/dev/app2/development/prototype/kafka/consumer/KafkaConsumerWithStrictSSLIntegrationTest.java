@@ -31,28 +31,33 @@ import org.springframework.test.context.junit.jupiter.DisabledIf;
 @DisabledIf(expression = "#{environment['skip.integration.test'] == 'true'}")
 @SpringBootTest(
     properties = {
-      "spring.kafka.bootstrap-servers=localhost:" + KafkaSSLIntegrationTest.BROKER_SSL_PORT
+      "spring.kafka.bootstrap-servers=localhost:"
+          + KafkaConsumerWithStrictSSLIntegrationTest.BROKER_SSL_PORT
     })
 @EmbeddedKafka(
     partitions = 2,
     brokerProperties = {
       "listeners=PLAINTEXT://:"
-          + KafkaSSLIntegrationTest.BROKER_PORT
+          + KafkaConsumerWithStrictSSLIntegrationTest.BROKER_PORT
           + ",SSL://:"
-          + KafkaSSLIntegrationTest.BROKER_SSL_PORT,
+          + KafkaConsumerWithStrictSSLIntegrationTest.BROKER_SSL_PORT,
       // "advertised.listeners=PLAINTEXT://localhost:19092,SSL://localhost:19093",
-      "ssl.keystore.location=" + KafkaSSLIntegrationTest.BROKER_KEYSTORE_LOCATION,
-      "ssl.keystore.password=" + KafkaSSLIntegrationTest.BROKER_KEYSTORE_PWD,
+      "ssl.keystore.location=" + KafkaConsumerWithStrictSSLIntegrationTest.BROKER_KEYSTORE_LOCATION,
+      "ssl.keystore.password=" + KafkaConsumerWithStrictSSLIntegrationTest.BROKER_KEYSTORE_PWD,
       // "ssl.key.password=" + KafkaSSLIntegrationTest.SERVER_KEYSTORE_PWD,
-      "ssl.truststore.location=" + KafkaSSLIntegrationTest.BROKER_TRUSTSTORE_LOCATION,
-      "ssl.truststore.password=" + KafkaSSLIntegrationTest.BROKER_TRUSTSTORE_PWD,
+      "ssl.truststore.location="
+          + KafkaConsumerWithStrictSSLIntegrationTest.BROKER_TRUSTSTORE_LOCATION,
+      "ssl.truststore.password=" + KafkaConsumerWithStrictSSLIntegrationTest.BROKER_TRUSTSTORE_PWD,
       "ssl.keystore.type=pkcs12",
       "ssl.truststore.type=pkcs12",
       "ssl.client.auth=required",
       "ssl.endpoint.identification.algorithm="
     },
-    topics = {KafkaSSLIntegrationTest.STRING_TOPIC, KafkaSSLIntegrationTest.MESSAGE_TOPIC})
-public class KafkaSSLIntegrationTest {
+    topics = {
+      KafkaConsumerWithStrictSSLIntegrationTest.STRING_TOPIC,
+      KafkaConsumerWithStrictSSLIntegrationTest.MESSAGE_TOPIC
+    })
+public class KafkaConsumerWithStrictSSLIntegrationTest {
 
   public static final String BROKER_PORT = "19092";
   public static final String BROKER_SSL_PORT = "19093";

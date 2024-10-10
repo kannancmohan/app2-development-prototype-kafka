@@ -9,7 +9,7 @@
 #broker.keystore.p12
 #broker.truststore.p12
 
-### Example client configuration(eg: client-ssl.properties) to connect to kafka broker
+### Example client configuration(eg: client-with-ssl.properties) to connect to kafka broker
 #security.protocol=SSL
 
 version: '3.8'

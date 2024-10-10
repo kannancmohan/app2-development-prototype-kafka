@@ -4,11 +4,17 @@
 #HOST_NAME=kafka.broker.dev.local
 
 ## Example client configuration(eg: client-ssl-strict.properties) to connect to kafka broker.
-#security.protocol=SSL
+#security.protocol=SASL_SSL
 #ssl.truststore.location=/path-to/client.truststore.p12
 #ssl.truststore.password=your-truststore-pwd
-#ssl.keystore.location=/path-to/client.keystore.p12
-#ssl.keystore.password=your-keystore-pwd
+#ssl.truststore.type=PKCS12
+#sasl.mechanism=OAUTHBEARER
+#sasl.oauthbearer.token.endpoint.url=http://keycloak.local.dev:8666/realms/<your-realm>/protocol/openid-connect/token
+#sasl.login.callback.handler.class=org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginCallbackHandler
+#sasl.jaas.config=org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required \
+#  clientId="your-client-id" \
+#  clientSecret="your-client-secret" \
+#  scope="openid";
 
 version: '3.8'
 services:
@@ -39,26 +45,7 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
-      ### Debug options ###
-      #KAFKA_OPTS: "-Djavax.net.debug=ssl:handshake" #to show SSL handshake info in log
-      KAFKA_LOG4J_LOGGERS: "org.apache.kafka.common.security=DEBUG,org.apache.kafka.common.network.SaslChannelBuilder=DEBUG"
-
       ### SSL config ###
-      #KAFKA_SSL_CIPHER_SUITES: ${SSL_CIPHER_SUITES}
-      #KAFKA_CONFLUENT_METADATA_SERVER_TOKEN_SIGNATURE_ALGORITHM: RS256
-#      KAFKA_SSL_KEYSTORE_FILENAME: broker.keystore.p12
-#      KAFKA_SSL_KEYSTORE_TYPE: PKCS12
-#      KAFKA_SSL_KEYSTORE_CREDENTIALS: keystore_pwd1.txt
-#      KAFKA_SSL_KEY_CREDENTIALS: keystore_pwd1.txt
-#      KAFKA_SSL_TRUSTSTORE_FILENAME: broker.truststore.p12
-#      KAFKA_SSL_TRUSTSTORE_TYPE: PKCS12
-#      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_pwd1.txt
-#      KAFKA_SSL_CLIENT_AUTH: 'none' #if its set 'required', then client's needs valid certificate to connect this broker
-#      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
-      ## SEEMS REDUNDANT - if not set, inter broker communication is failing
-      #KAFKA_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/broker.keystore.p12
-      #KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/broker.truststore.p12
-
       KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/broker.truststore.p12
       KAFKA_SSL_TRUSTSTORE_PASSWORD: test@test.com
       KAFKA_SSL_TRUSTSTORE_TYPE: PKCS12
@@ -67,7 +54,7 @@ services:
       KAFKA_SSL_KEYSTORE_TYPE: PKCS12
       KAFKA_SSL_KEY_PASSWORD: test@test.com
       KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
-
+      ### SASL config ###
       KAFKA_SASL_ENABLED_MECHANISMS: PLAIN, OAUTHBEARER
       KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
       KAFKA_LISTENER_NAME_EXTERNAL_SASL_ENABLED_MECHANISMS: OAUTHBEARER
@@ -76,19 +63,12 @@ services:
       KAFKA_SASL_OAUTHBEARER_JWKS_ENDPOINT_URL: http://192.168.0.30:8666/realms/waterpark-keycloak/protocol/openid-connect/certs
       KAFKA_SASL_OAUTHBEARER_SCOPE_CLAIM: scope
       KAFKA_SASL_OAUTHBEARER_EXPECTED_AUDIENCE: "account"
-
-#      ### Enable SASL and OAUTHBEARER for the EXTERNAL listener ###
-#      KAFKA_LISTENER_NAME_EXTERNAL_SASL_ENABLED_MECHANISMS: OAUTHBEARER
-#      KAFKA_LISTENER_NAME_EXTERNAL_SASL_OAUTHBEARER_JWKS_ENDPOINT_URL: http://192.168.0.30:8666/realms/homelab/protocol/openid-connect/certs
-#      KAFKA_LISTENER_NAME_EXTERNAL_OAUTHBEARER_SASL_SERVER_CALLBACK_HANDLER_CLASS: org.apache.kafka.common.security.oauthbearer.secured.OAuthBearerValidatorCallbackHandler
-#      #KAFKA_SASL_OAUTHBEARER_SUB_CLAIM_NAME: "sub" # optional: Set claim name for scope (default is sub)
-#      #KAFKA_SASL_OAUTHBEARER_SCOPE_CLAIM_NAME: "" # optional: Set claim name for subject (default is scope)
-#      KAFKA_LISTENER_NAME_EXTERNAL_SASL_OAUTHBEARER_EXPECTED_AUDIENCE: account
-#      #KAFKA_LISTENER_NAME_EXTERNAL_SASL_OAUTHBEARER_EXPECTED_ISSUER: http://zitadel.dev.local # optional
-#      KAFKA_LISTENER_NAME_EXTERNAL_OAUTHBEARER_SASL_JAAS_CONFIG: "org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required;"
-#      KAFKA_OPTS:
-#        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-#        -Djavax.net.debug=ssl:handshake
+      KAFKA_SASL_OAUTHBEARER_EXPECTED_ISSUER: "account"
+      ### Debug config ###
+      KAFKA_LOG4J_LOGGERS: "org.apache.kafka.common.security=DEBUG,org.apache.kafka.common.network.SaslChannelBuilder=DEBUG"
+      KAFKA_OPTS:
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+        -Djavax.net.debug=ssl:handshake
 
     volumes:
       - ./docker_volume/kafka/ssl_secrets/self-signed:/etc/kafka/secrets:ro  # Ensure this points to the directory with your keystore and truststore

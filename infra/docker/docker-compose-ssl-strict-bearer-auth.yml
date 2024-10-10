@@ -2,6 +2,11 @@
 
 ### Make sure to set the following variable in .env or as environment variable
 #KAFKA_HOST_NAME=kafka.broker.dev.local
+#KAFKA_TRUSTSTORE_PWD=your-truststore-password
+#KAFKA_KEYSTORE_PWD=your-keystore-password
+#DP_JWKS_ENDPOINT_URL=your-idp-jwks-endpoint
+#IDP_JWT_EXPECTED_AUDIENCE=use the 'aud' value in jwt token
+#IDP_JWT_EXPECTED_ISSUER=use the 'iss' value in jwt token
 
 ## Example client configuration(eg: client-ssl-strict.properties) to connect to kafka broker.
 #security.protocol=SASL_SSL

@@ -1,5 +1,7 @@
 ### Make sure to set the following variable in .env or as environment variable
 #KAFKA_HOST_NAME=kafka.broker.dev.local
+#KEYCLOAK_ADMIN_USER=admin-user
+#KEYCLOAK_ADMIN_PWD=admin-pwd
 
 version: '3.8'
 

@@ -3,6 +3,12 @@
 ### Make sure to set the following variable in .env or as environment variable
 #KAFKA_HOST_NAME=kafka.broker.dev.local
 
+### Make sure to add the following files to /docker_volume/kafka/ssl_secrets folders
+#keystore_pwd1.txt
+#truststore_pwd1.txt
+#broker.keystore.p12
+#broker.truststore.p12
+
 ### Example client configuration(eg: client-ssl.properties) to connect to kafka broker
 #security.protocol=SSL
 

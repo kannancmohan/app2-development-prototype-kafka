@@ -70,14 +70,13 @@ services:
       KAFKA_SASL_OAUTHBEARER_EXPECTED_AUDIENCE: ${IDP_JWT_EXPECTED_AUDIENCE}
       KAFKA_SASL_OAUTHBEARER_EXPECTED_ISSUER: ${IDP_JWT_EXPECTED_ISSUER}
       ### Debug config ###
-      KAFKA_LOG4J_LOGGERS: "org.apache.kafka.common.security=DEBUG,org.apache.kafka.common.network.SaslChannelBuilder=DEBUG"
-      KAFKA_OPTS:
-        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-        -Djavax.net.debug=ssl:handshake
+#      KAFKA_LOG4J_LOGGERS: "org.apache.kafka.common.security=DEBUG,org.apache.kafka.common.network.SaslChannelBuilder=DEBUG"
+#      KAFKA_OPTS:
+#        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+#        -Djavax.net.debug=ssl:handshake
 
     volumes:
       - ./docker_volume/kafka/ssl_secrets/self-signed:/etc/kafka/secrets:ro  # Ensure this points to the directory with your keystore and truststore
-      - ./docker_volume/kafka/sasl:/etc/kafka/sasl:ro
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest

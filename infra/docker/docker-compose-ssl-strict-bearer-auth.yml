@@ -40,7 +40,7 @@ services:
       - 9093:9093
       - 5005:5005
     dns:
-      - 192.168.0.21 # optional
+      - 192.168.0.21 # added as docker was not able to resolve custom idp url
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -49,7 +49,7 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:SASL_SSL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
-      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      #KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
       ### SSL config ###
       KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/broker.truststore.p12
       KAFKA_SSL_TRUSTSTORE_PASSWORD: ${KAFKA_TRUSTSTORE_PWD}
@@ -66,7 +66,7 @@ services:
       KAFKA_LISTENER_NAME_EXTERNAL_OAUTHBEARER_SASL_SERVER_CALLBACK_HANDLER_CLASS: org.apache.kafka.common.security.oauthbearer.OAuthBearerValidatorCallbackHandler
       KAFKA_LISTENER_NAME_EXTERNAL_OAUTHBEARER_SASL_JAAS_CONFIG: "org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required;"
       KAFKA_SASL_OAUTHBEARER_JWKS_ENDPOINT_URL: ${IDP_JWKS_ENDPOINT_URL}
-      KAFKA_SASL_OAUTHBEARER_SCOPE_CLAIM: scope
+      #KAFKA_SASL_OAUTHBEARER_SCOPE_CLAIM: scope # which claim in JWT should be interpreted as the scope
       KAFKA_SASL_OAUTHBEARER_EXPECTED_AUDIENCE: ${IDP_JWT_EXPECTED_AUDIENCE}
       KAFKA_SASL_OAUTHBEARER_EXPECTED_ISSUER: ${IDP_JWT_EXPECTED_ISSUER}
       ### Debug config ###

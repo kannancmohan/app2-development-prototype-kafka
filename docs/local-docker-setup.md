@@ -8,7 +8,7 @@
 2. Add the following environment variables or update update the same in .env
 
 ```
-HOST_NAME= kafka.broker.dev.local
+KAFKA_HOST_NAME= kafka.broker.dev.local
 ```
 
 #### To start kafka broker
@@ -27,7 +27,7 @@ docker-compose up -d
 2. Add the following environment variables or update update the same in .env
 
 ```
-HOST_NAME=kafka.broker.dev.local
+KAFKA_HOST_NAME=kafka.broker.dev.local
 ```
 
 3. If not exists, generate broker's keystore, truststore files and its password

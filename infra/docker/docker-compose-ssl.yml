@@ -1,7 +1,7 @@
 # docker-compose for kafka broker with ssl enabled but no strict ssl check for clients
 
 ### Make sure to set the following variable in .env or as environment variable
-#HOST_NAME=kafka.broker.dev.local
+#KAFKA_HOST_NAME=kafka.broker.dev.local
 
 ### Example client configuration(eg: client-ssl.properties) to connect to kafka broker
 #security.protocol=SSL
@@ -27,7 +27,7 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENERS: PLAINTEXT://:9092,SSL://:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,SSL://${HOST_NAME}:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,SSL://${KAFKA_HOST_NAME}:9093
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,SSL:SSL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       ### Debug options ###

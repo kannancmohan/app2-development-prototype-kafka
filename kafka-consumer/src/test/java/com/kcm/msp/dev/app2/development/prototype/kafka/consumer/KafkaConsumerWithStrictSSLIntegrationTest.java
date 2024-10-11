@@ -42,6 +42,7 @@ import org.springframework.test.context.junit.jupiter.DisabledIf;
           + ",SSL://:"
           + KafkaConsumerWithStrictSSLIntegrationTest.BROKER_SSL_PORT,
       // "advertised.listeners=PLAINTEXT://localhost:19092,SSL://localhost:19093",
+      "listener.security.protocol.map = PLAINTEXT:PLAINTEXT,SSL:SSL",
       "ssl.keystore.location=" + KafkaConsumerWithStrictSSLIntegrationTest.BROKER_KEYSTORE_LOCATION,
       "ssl.keystore.password=" + KafkaConsumerWithStrictSSLIntegrationTest.BROKER_KEYSTORE_PWD,
       // "ssl.key.password=" + KafkaSSLIntegrationTest.SERVER_KEYSTORE_PWD,

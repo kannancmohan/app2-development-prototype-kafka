@@ -1,0 +1,32 @@
+---
+spring:
+  kafka:
+    security.protocol: SASL_SSL
+    ssl:
+      trust-store-location: classpath:self-signed-certs/client-truststore.p12
+      trust-store-password: "test@test.com"
+      trust-store-type: PKCS12
+    properties:
+      security.protocol: SASL_SSL
+      ssl.endpoint.identification.algorithm: ""
+      sasl.mechanism: OAUTHBEARER
+      sasl.jaas.config: >
+        org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required 
+        clientId="${OAUTH2_CLIENT_ID}" clientSecret="${OAUTH2_CLIENT_PWD}" 
+        tokenEndpoint="${OAUTH2_TOKEN_ENDPOINT}" 
+        scope="${OAUTH2_CLIENT_SCOPE}";
+      sasl.login.callback.handler.class: "org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginCallbackHandler"
+      sasl.oauthbearer.token.endpoint.url: "${OAUTH2_TOKEN_ENDPOINT}"
+management:
+  tracing:
+    enabled: false
+consumers:
+  string_consumer:
+    topics: int_test_ssl_bearer_string-topic
+    groupId: int_test_ssl_bearer_string-topic-consumer-group_1
+  batch_string_consumer:
+    topics: int_test_ssl_bearer_string-topic
+    groupId: int_test_ssl_bearer_string-topic-batch-consumer-group_2
+  message_consumer:
+    topics: int_test_ssl_bearer_message_obj-topic
+    groupId: int_test_ssl_bearer_message_obj-topic-consumer-group_3

@@ -26,7 +26,7 @@ import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.DisabledIf;
 
-@ActiveProfiles({"test", "test-ssl"})
+@ActiveProfiles({"test-ssl"})
 @Tag("IntegrationTest")
 @DisabledIf(expression = "#{environment['skip.integration.test'] == 'true'}")
 @SpringBootTest(

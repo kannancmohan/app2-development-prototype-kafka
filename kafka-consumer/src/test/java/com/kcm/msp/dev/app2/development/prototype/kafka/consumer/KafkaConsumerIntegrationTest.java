@@ -201,6 +201,7 @@ public class KafkaConsumerIntegrationTest {
   }
 
   @Component
+  @Profile("test")
   static class CheckRetryAttempts {
     final int totalInvocation = 4;
     final Map<String, Integer> attempts = new HashMap<>();

@@ -1,13 +1,16 @@
 package com.kcm.msp.dev.app2.development.prototype.kafka.consumer;
 
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.jackson.io.JacksonSerializer;
+import io.jsonwebtoken.security.JwkSet;
+import io.jsonwebtoken.security.Jwks;
+import io.jsonwebtoken.security.PublicJwk;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
-import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.time.Instant;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 
 public final class JwtUtil {
@@ -16,32 +19,35 @@ public final class JwtUtil {
     throw new UnsupportedOperationException();
   }
 
+  public static KeyPair generateRsaKeyPair() {
+    return Jwts.SIG.RS512.keyPair().build();
+  }
+
+  public static PublicJwk<PublicKey> generateJwk(final String id, PublicKey publicKey) {
+    return Jwks.builder().id(id).key(publicKey).algorithm("RS512").build();
+  }
+
+  public static String generateJwksJson(PublicJwk<PublicKey> jwk) {
+    JwkSet set = Jwks.set().add(jwk).build();
+    byte[] utf8Bytes = new JacksonSerializer().serialize(set);
+    return new String(utf8Bytes, StandardCharsets.UTF_8);
+  }
+
   public static String generateJwt(
-      PrivateKey privateKey, String subject, Map<String, Object> claims, long expirationInSec) {
-    // var claims = Map.of("aud", audience);
+      final PrivateKey privateKey,
+      final String subject,
+      final Map<String, Object> claims,
+      long expirationInSec) {
     final var now = Instant.now();
     return Jwts.builder()
+        .header()
+        .add(Map.of("typ", "JWT"))
+        .and()
         .subject(subject)
         .claims(claims)
         .issuedAt(Date.from(now))
-        .expiration(java.sql.Date.from(Instant.now().plusSeconds(expirationInSec)))
-        .signWith(privateKey) // RSA Signature
+        .expiration(Date.from(Instant.now().plusSeconds(expirationInSec)))
+        .signWith(privateKey)
         .compact();
-  }
-
-  public static Map<String, Object> generateJwks(PublicKey publicKey) {
-    Map<String, Object> jwks = new HashMap<>();
-    jwks.put("kty", "RSA");
-    jwks.put("alg", "RS256");
-    jwks.put("use", "sig");
-    jwks.put("n", java.util.Base64.getUrlEncoder().encodeToString(publicKey.getEncoded()));
-    jwks.put("e", "AQAB"); // Standard exponent for RSA keys
-    return jwks;
-  }
-
-  public static KeyPair generateRsaKeyPair() throws Exception {
-    KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-    keyPairGenerator.initialize(2048);
-    return keyPairGenerator.generateKeyPair();
   }
 }

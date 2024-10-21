@@ -33,11 +33,11 @@ public class WireMockInitializer
   private static final String BROKER_ZK_PORT = "19885";
 
   private static final String BROKER_KEYSTORE_LOCATION =
-      "src/test/resources/self-signed-certs/server-keystore2.p12";
+      "src/test/resources/self-signed-certs/server-keystore.p12";
   private static final String BROKER_KEYSTORE_PWD = "test@test.com";
 
   private static final String BROKER_TRUSTSTORE_LOCATION =
-      "src/test/resources/self-signed-certs/server-truststore2.p12";
+      "src/test/resources/self-signed-certs/server-truststore.p12";
   private static final String BROKER_TRUSTSTORE_PWD = "test@test.com";
   private static final String BROKER_SASL_JWKS_ENDPOINT =
       "http://localhost:19883/mock-idp/protocol/openid-connect/certs";
@@ -150,7 +150,7 @@ public class WireMockInitializer
     configs.put(AdminClientConfig.SECURITY_PROTOCOL_CONFIG, "SASL_SSL");
     configs.put("sasl.mechanism", "OAUTHBEARER");
     configs.put(
-        "ssl.truststore.location", "src/test/resources/self-signed-certs/client-truststore2.p12");
+        "ssl.truststore.location", "src/test/resources/self-signed-certs/client-truststore.p12");
     configs.put("ssl.truststore.password", "test@test.com");
     configs.put(
         "sasl.jaas.config",

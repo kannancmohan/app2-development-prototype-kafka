@@ -3,12 +3,16 @@ spring:
   kafka:
     security.protocol: SASL_SSL
     ssl:
-      trust-store-location: classpath:self-signed-certs/client-truststore.p12
+#      key-store-location: classpath:/self-signed-certs/client-keystore2.p12
+#      key-store-password: "test@test.com"
+#      key-store-type: PKCS12
+      trust-store-location: classpath:self-signed-certs/client-truststore2.p12
       trust-store-password: "test@test.com"
       trust-store-type: PKCS12
     properties:
       security.protocol: SASL_SSL
       ssl.endpoint.identification.algorithm: ""
+#      ssl.client.auth: none
       sasl.mechanism: OAUTHBEARER
       sasl.jaas.config: >
         org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required 
@@ -30,3 +34,9 @@ consumers:
   message_consumer:
     topics: int_test_ssl_bearer_message_obj-topic
     groupId: int_test_ssl_bearer_message_obj-topic-consumer-group_3
+#logging:
+#  level:
+#    org:
+#      apache.kafka: DEBUG
+#      springframework.kafka: DEBUG
+#      springframework.kafka.listener.adapter.RecordMessagingMessageListenerAdapter: DEBUG

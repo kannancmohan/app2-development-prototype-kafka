@@ -19,6 +19,7 @@ import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.DisabledIf;
@@ -39,6 +40,7 @@ import org.springframework.test.context.junit.jupiter.DisabledIf;
           + KafkaConsumerWithSSLAndBearerAuthIntegrationTest.CONSUMER_OAUTH_CLIENT_SCOPE,
       "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"
     })
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class KafkaConsumerWithSSLAndBearerAuthIntegrationTest {
   public static final String STRING_TOPIC = "int_test_ssl_bearer_string-topic";
   public static final String CONSUMER_OAUTH_CLIENT_ID = "kafka-consumer2";

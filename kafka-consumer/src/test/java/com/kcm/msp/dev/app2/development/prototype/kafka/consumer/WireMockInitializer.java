@@ -54,17 +54,18 @@ public class WireMockInitializer
     try {
       final var wireMockServer = generateWireMockServer();
       applicationContext.getBeanFactory().registerSingleton("wireMockServer", wireMockServer);
+      final var embeddedKafka = generateKafkaBroker();
+      applicationContext.getBeanFactory().registerSingleton("embeddedKafka", embeddedKafka);
+      final AdminClient adminClient = adminClient(embeddedKafka);
+      applicationContext.getBeanFactory().registerSingleton("kafkaAdminClient", adminClient);
+      embeddedKafka.afterPropertiesSet(); // start kafka broker
       applicationContext.addApplicationListener(
           event -> {
             if (event instanceof ContextClosedEvent) {
               wireMockServer.stop();
+              embeddedKafka.destroy();
             }
           });
-      final var embeddedKafka = generateKafkaBroker();
-      applicationContext.getBeanFactory().registerSingleton("embeddedKafka", embeddedKafka);
-      AdminClient adminClient = adminClient(embeddedKafka);
-      applicationContext.getBeanFactory().registerSingleton("kafkaAdminClient", adminClient);
-      embeddedKafka.afterPropertiesSet(); // start kafka broker
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -85,7 +86,6 @@ public class WireMockInitializer
     final WireMockServer wireMockServer =
         new WireMockServer(WireMockConfiguration.wireMockConfig().port(19883));
     wireMockServer.start();
-    // WireMock.configureFor("localhost", wireMockServer.port());
     wireMockServer.stubFor(
         get(urlEqualTo("/mock-idp/protocol/openid-connect/certs"))
             .willReturn(

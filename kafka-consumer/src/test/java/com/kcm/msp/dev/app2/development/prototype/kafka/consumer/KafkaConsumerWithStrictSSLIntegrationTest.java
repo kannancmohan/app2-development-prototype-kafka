@@ -23,6 +23,7 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.DisabledIf;
 
@@ -58,6 +59,7 @@ import org.springframework.test.context.junit.jupiter.DisabledIf;
       KafkaConsumerWithStrictSSLIntegrationTest.STRING_TOPIC,
       KafkaConsumerWithStrictSSLIntegrationTest.MESSAGE_TOPIC
     })
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class KafkaConsumerWithStrictSSLIntegrationTest {
 
   public static final String BROKER_PORT = "19092";

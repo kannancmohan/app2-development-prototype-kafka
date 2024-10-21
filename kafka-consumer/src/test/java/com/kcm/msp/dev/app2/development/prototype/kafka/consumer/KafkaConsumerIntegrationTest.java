@@ -47,6 +47,7 @@ import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.DisabledIf;
 
@@ -57,6 +58,7 @@ import org.springframework.test.context.junit.jupiter.DisabledIf;
 @EmbeddedKafka(
     partitions = 2,
     topics = {"int_test_string-topic", "int_test_message_obj-topic"})
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class KafkaConsumerIntegrationTest {
 
   private static final String CUSTOM_OBJECT_TOPIC = "int_test_message_obj-topic";

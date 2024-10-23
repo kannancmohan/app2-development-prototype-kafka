@@ -3,7 +3,6 @@ package com.kcm.msp.dev.app2.development.prototype.kafka.consumer;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 import java.time.Duration;
 import java.util.stream.StreamSupport;
@@ -11,11 +10,9 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,6 +21,7 @@ import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.MethodMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.DisabledIf;
 
@@ -59,7 +57,7 @@ import org.springframework.test.context.junit.jupiter.DisabledIf;
       KafkaConsumerWithStrictSSLIntegrationTest.STRING_TOPIC,
       KafkaConsumerWithStrictSSLIntegrationTest.MESSAGE_TOPIC
     })
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@DirtiesContext(methodMode = MethodMode.AFTER_METHOD)
 public class KafkaConsumerWithStrictSSLIntegrationTest {
 
   public static final String BROKER_PORT = "19092";
@@ -83,24 +81,13 @@ public class KafkaConsumerWithStrictSSLIntegrationTest {
   private ConcurrentKafkaListenerContainerFactory<String, String> defaultContainerFactory;
 
   @Nested
-  @TestInstance(PER_CLASS)
   class TestStingPayload {
-
-    private Producer<String, String> producer;
-
-    @BeforeAll
-    void beforeAll() {
-      final var producerProperties = kafkaProperties.buildProducerProperties(null);
-      // final var producerProperties = KafkaTestUtils.producerProps(broker);
-      producer = new KafkaProducer<>(producerProperties);
-    }
-
     @Test
     void stringMessageShouldInvokeKafkaConsumer() {
-      final var payloadKey = "test_string-key";
+      final var payloadKey = "test_ssl-string";
       final var payload = "Sending with our own simple KafkaProducer";
-      final var group = "test_string-group1";
-      producer.send(new ProducerRecord<>(STRING_TOPIC, payloadKey, payload));
+      final var group = "test_ssl-string-group1";
+      getProducer().send(new ProducerRecord<>(STRING_TOPIC, payloadKey, payload));
       final var consumer = getConsumer(defaultContainerFactory, STRING_TOPIC, group);
       final var records = KafkaTestUtils.getRecords(consumer, Duration.ofSeconds(30));
       assertAll(
@@ -112,6 +99,11 @@ public class KafkaConsumerWithStrictSSLIntegrationTest {
                       .anyMatch(r -> payloadKey.equals(r.key()))));
       consumer.close();
     }
+  }
+
+  private Producer<String, String> getProducer() {
+    final var producerProperties = kafkaProperties.buildProducerProperties(null);
+    return new KafkaProducer<>(producerProperties);
   }
 
   @SuppressWarnings("unchecked")

@@ -1,19 +1,29 @@
 # docker-compose for kafka broker with ssl enabled and strict ssl check for clients (Client's requires valid keystore.p12 and truststore.p12 to connect)
 
 ### Make sure to set the following variable in .env or as environment variable
-#HOST_NAME=kafka.kcmeu.duckdns.org
+#KAFKA_HOST_NAME=kafka.broker.dev.local
 
-## Example client configuration(eg: client-ssl-strict.properties) to connect to kafka broker.
+### Make sure to add the following files to /docker_volume/kafka/ssl_secrets folders
+#keystore_pwd1.txt
+#truststore_pwd1.txt
+#broker.keystore.p12
+#broker.truststore.p12
+
+## Example client configuration(eg: client-with-strict-ssl.properties) to connect to kafka broker.
 #security.protocol=SSL
 #ssl.truststore.location=/path-to/client.truststore.p12
 #ssl.truststore.password=your-truststore-pwd
+#ssl.truststore.type=PKCS12
 #ssl.keystore.location=/path-to/client.keystore.p12
-#ssl.keystore.password=your-keystore-pwd
+#ssl.keystore.password==your-keystore-pwd
+#ssl.keystore.type=PKCS12
+#ssl.endpoint.identification.algorithm=
+#ssl.client.auth=required
 
 version: '3.8'
 services:
   zookeeper:
-    image: confluentinc/cp-zookeeper:latest
+    image: confluentinc/cp-zookeeper:7.7.1
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -21,17 +31,17 @@ services:
       - 2181:2181
 
   kafka:
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:7.7.1
     depends_on:
       - zookeeper
     ports:
       - 9092:9092
-      - 9093:9093 # SASL_SSL listener
+      - 9093:9093
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENERS: PLAINTEXT://:9092,SSL://:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,SSL://${HOST_NAME}:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,SSL://${KAFKA_HOST_NAME}:9093
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,SSL:SSL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       ### Debug options ###
@@ -50,7 +60,7 @@ services:
       #KAFKA_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/broker.keystore.p12
       #KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/broker.truststore.p12
     volumes:
-      - ./secrets:/etc/kafka/secrets:ro  # Ensure this points to the directory with your keystore and truststore
+      - ./docker_volume/kafka/ssl_secrets:/etc/kafka/secrets:ro  # Ensure this points to the directory with your keystore and truststore
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest

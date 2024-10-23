@@ -1,5 +1,12 @@
 ## Steps for generating keystore and truststore files for kafka broker and clients
 
+### Steps to generate keystore and truststore self-signed certificate files(p12) for server and client
+
+   ```
+   cd scripts/
+   ./self-signed-keystore-truststore.sh -k keystore_name -t truststore_name -p test@test.com -q test@test.com -r test@test.com -s test@test.com
+   ```
+
 ### Steps for generating keystore and truststore (p12) files for kafka broker
 Here the assumption is that you already have your your-domain.crt, your-domain.key and CA.crt files
 1. Download the CA.crt if not available

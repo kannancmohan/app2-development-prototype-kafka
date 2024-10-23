@@ -41,14 +41,10 @@ import org.springframework.test.context.junit.jupiter.DisabledIf;
     })
 @DirtiesContext(methodMode = MethodMode.AFTER_METHOD)
 public class KafkaConsumerWithSSLAndBearerAuthIntegrationTest {
-  public static final String STRING_TOPIC = "int_test_ssl_bearer_string-topic";
+  private static final String STRING_TOPIC = "int_test_ssl_bearer_string-topic";
   public static final String CONSUMER_OAUTH_CLIENT_ID = "kafka-consumer2";
   public static final String CONSUMER_OAUTH_CLIENT_SECRET = "ZX10LkmMA8iESde9AjpL5hnJZbQPXzzm";
   public static final String CONSUMER_OAUTH_CLIENT_SCOPE = "openid profile";
-
-  // @Autowired private EmbeddedKafkaBroker embeddedKafka;
-
-  // @Autowired WireMockServer wireMockServer;
 
   @Autowired private KafkaProperties kafkaProperties;
 
@@ -56,7 +52,6 @@ public class KafkaConsumerWithSSLAndBearerAuthIntegrationTest {
   private ConcurrentKafkaListenerContainerFactory<String, String> defaultContainerFactory;
 
   @Nested
-  // @TestInstance(PER_CLASS)
   class TestStingPayload {
     @Test
     void stringMessageShouldInvokeKafkaConsumer() {
